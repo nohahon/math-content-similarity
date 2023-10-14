@@ -4,8 +4,9 @@
 
 .ipynb_checkpoints
 */.ipynb_checkpoints/*
-/data/*
+*/data/*
 /dev/*
+.vscode/*
 
 # IPython
 profile_default/
