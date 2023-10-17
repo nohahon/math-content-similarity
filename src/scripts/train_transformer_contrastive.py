@@ -6,8 +6,7 @@ from transformers import Trainer, TrainingArguments
 model = Transformer("distilbert-base-uncased")
 input = model.tokenizer("This is it.", return_tensors="pt")
 model(input)
-# loss = ContrastiveLoss(model)
-
-# model = loss(model)
+loss = ContrastiveLoss(model)
+print(loss)
 
 # trainer = Trainer  # can be peft trainer
