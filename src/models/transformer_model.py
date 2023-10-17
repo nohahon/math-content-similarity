@@ -1,9 +1,10 @@
 from torch import nn
+import torch
 from transformers import AutoModel, AutoTokenizer, AutoConfig
 from src.models.pooling import PoolingLayer
-import json
-from typing import List, Dict, Optional, Union, Tuple
-import os
+from typing import List, Dict, Optional
+import pandas as pd
+from src.data.dataset import TorchDataset
 
 
 class Transformer(nn.Module):
@@ -47,57 +48,63 @@ class Transformer(nn.Module):
             **model_args,
         )
 
-    def forward(self, features):
+    def forward(self, input_ids, attention_mask):
         """Returns token_embeddings, cls_token"""
-        trans_features = {
-            "input_ids": features["input_ids"],
-            "attention_mask": features["attention_mask"],
-        }
-        if "token_type_ids" in features:
-            trans_features["token_type_ids"] = features["token_type_ids"]
-
-        output_states = self.language_model(
-            **trans_features,
+        output = self.language_model(
+            input_ids,
+            attention_mask,
             return_dict=False,
         )
-        output_tokens = output_states[0]
-
+        features = {}
         features.update(
             {
-                "token_embeddings": output_tokens,
-                "attention_mask": features["attention_mask"],
+                "token_embeddings": output[0],
+                "attention_mask": attention_mask,
             },
         )
-
-        if self.language_model.config.output_hidden_states:
-            all_layer_idx = 2
-            if (
-                len(output_states) < 3
-            ):  # Some models only output last_hidden_states and all_hidden_states
-                all_layer_idx = 1
-
-            hidden_states = output_states[all_layer_idx]
-            features.update({"all_layer_embeddings": hidden_states})
-
         features = self.pooler_layer(features)
-
         return features
 
     def get_word_embedding_dimension(self) -> int:
         return self.language_model.config.hidden_size
 
-    def tokenize(
-        self,
-        texts: Union[List[str], List[Dict], List[Tuple[str, str]]],
-    ):
-        return None
+    def tokenize(self, data: pd.DataFrame):
+        tokenized = []
 
-    def save(self, output_path: str):
-        self.language_model.save_pretrained(output_path)
-        self.tokenizer.save_pretrained(output_path)
+        def tokenize_single_(d):
+            tokenized_anchor = self.tokenizer(
+                d["anchor"],
+                return_tensors="pt",
+                padding="max_length",
+                max_length=512,
+                truncation=True,
+            )
+            tokenized_rec = self.tokenizer(
+                d["rec"],
+                return_tensors="pt",
+                padding="max_length",
+                max_length=512,
+                truncation=True,
+            )
+            return {
+                "input_ids": torch.cat(
+                    [
+                        tokenized_rec["input_ids"],
+                        tokenized_anchor["input_ids"],
+                    ],
+                ),
+                "attention_mask": torch.cat(
+                    [
+                        tokenized_rec["attention_mask"],
+                        tokenized_anchor["attention_mask"],
+                    ],
+                ),
+            }
 
-        with open(
-            os.path.join(output_path, "sentence_bert_config.json"),
-            "w",
-        ) as fOut:
-            json.dump(self.get_config_dict(), fOut, indent=2)
+        for idx, row in data.iterrows():
+            tokenized.append(tokenize_single_(row))
+        labels = data.label.tolist()
+        return TorchDataset(tokenized, labels)
+
+    def save(self, path):
+        torch.save(self, path)

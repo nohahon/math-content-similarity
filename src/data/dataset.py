@@ -1,65 +1,26 @@
-import pandas as pd
-from datasets import Dataset
-from transformers import DataCollatorWithPadding
-from torch.utils.data import DataLoader
-import os
+from torch.utils.data import DataLoader, Dataset
 from config import RANDOM_SEED
 
 
-class DataSet:
-    def __init__(
-        self,
-        path_to_csv,
-        tokenizer,
-        var_to_text_mapping,
-        use_dataloaders: bool,
-    ):
-        self.df = self.download_data(path_to_csv)
-        self.df = self.df.rename(columns=var_to_text_mapping)
-        self.tokenizer = tokenizer
-        self.dc = DataCollatorWithPadding(
-            tokenizer=self.tokenizer,
-            padding=True,
-        )
-        self.tok = self.tokenize_data()
-        self.train, self.dev, self.test = self.split_dataset(
-            use_dataloaders=use_dataloaders,
-        )
+class TorchDataset(Dataset):
+    def __init__(self, features, labels):
+        self.features = features
+        self.labels = labels
 
-    def download_data(self, path_to_csv):
-        if not os.path.exists(path_to_csv):
-            storage_client.download_from_gcs_to_local_directory_or_file(
-                local_path="",
-                gcs_path=path_to_csv,
-            )
-        return pd.read_csv(path_to_csv)
+    def __len__(self):
+        return len(self.labels)
 
-    def tokenize_data(self):
-        return pd.DataFrame(
-            dict(
-                self.tokenizer(
-                    list(self.df["text"]),
-                    truncation=True,
-                    padding=True,
-                    max_length=512,
-                ),
-            ),
-        )
+    def __getitem__(self, index):
+        # Access a row from the DataFrame by index
+        sample = self.features[index]
+        input_ids = sample["input_ids"]
+        attention_mask = sample["attention_mask"]
+        labels = self.labels[index]
+        return {
+            "input_ids": input_ids,
+            "attention_mask": attention_mask,
+            "labels": labels,
+        }
 
-    def split_dataset(self, use_dataloaders=False):
-        dataset = self.tok
-        dataset["labels"] = self.df["labels"]
-        dataset = dataset.sample(frac=1, random_state=RANDOM_SEED)
-
-        train = Dataset.from_dict(dataset[: int(len(dataset) * 0.7)])
-        dev = Dataset.from_dict(
-            dataset[int(len(dataset) * 0.7) : int(len(dataset) * 0.85)],
-        )
-        test = Dataset.from_dict(dataset[int(len(dataset) * 0.85) :])
-
-        if use_dataloaders:
-            train = DataLoader(train, batch_size=32, collate_fn=self.dc)
-            dev = DataLoader(dev, batch_size=32, collate_fn=self.dc)
-            test = DataLoader(test, batch_size=32, collate_fn=self.dc)
-
-        return train, dev, test
+    def get_dataloader(self, batch_size):
+        return DataLoader(self, batch_size=batch_size, shuffle=True)

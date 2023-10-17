@@ -1,7 +1,6 @@
 from enum import Enum
-from typing import Iterable, Dict
 import torch.nn.functional as F
-from torch import nn, Tensor
+from torch import nn
 from src.models.transformer_model import Transformer
 
 
@@ -33,20 +32,19 @@ class ContrastiveLoss(nn.Module):
         self.margin = margin
         self.model = model
 
-    def forward(
-        self,
-        sentence_features: Iterable[Dict[str, Tensor]],
-        labels: Tensor,
-    ):
-        reps = [
-            self.model(sentence_feature)["sentence_embedding"]
-            for sentence_feature in sentence_features
-        ]
-        assert len(reps) == 2
-        rep_anchor, rep_other = reps
+    def forward(self, input_ids, attention_mask, labels):
+        # get representations from model
+        rep_anchor = self.model(
+            input_ids=input_ids[:, 0, :],
+            attention_mask=attention_mask[:, 0, :],
+        )["sentence_embedding"]
+        rep_other = self.model(
+            input_ids=input_ids[:, 1, :],
+            attention_mask=attention_mask[:, 1, :],
+        )["sentence_embedding"]
         distances = self.distance_metric(rep_anchor, rep_other)
         losses = 0.5 * (
             labels.float() * distances.pow(2)
             + (1 - labels).float() * F.relu(self.margin - distances).pow(2)
         )
-        return losses.mean()
+        return {"loss": losses.mean()}

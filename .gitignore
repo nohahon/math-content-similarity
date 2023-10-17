@@ -8,7 +8,8 @@
 /dev/*
 .vscode/*
 *.env
-
+*.pth
+*.csv
 # IPython
 profile_default/
 ipython_config.py
