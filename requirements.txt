@@ -54,3 +54,5 @@ tzdata==2023.3
 urllib3==2.0.6
 xxhash==3.4.1
 yarl==1.9.2
+python-dotenv==0.21.1
+wandb==0.13.11

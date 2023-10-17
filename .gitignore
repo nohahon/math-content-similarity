@@ -10,6 +10,8 @@
 *.env
 *.pth
 *.csv
+/wandb/*
+/artifacts/*
 # IPython
 profile_default/
 ipython_config.py
