@@ -30,6 +30,10 @@ class Transformer(nn.Module):
 
         self.model_args = model_args
         lm_config = AutoConfig.from_pretrained(model_name_or_path)
+        self.tokenizer = AutoTokenizer.from_pretrained(
+            model_name_or_path,
+            padding_side="left",
+        )
         self.quantization_config = BitsAndBytesConfig(
             load_in_4bit=True,
             bnb_4bit_compute_dtype=torch.float16,
@@ -47,10 +51,7 @@ class Transformer(nn.Module):
             model_args=self.model_args,
         )
 
-        self.tokenizer = AutoTokenizer.from_pretrained(
-            model_name_or_path,
-            padding_side="left",
-        )
+        
 
         self.pooler_layer = PoolingLayer(
             pooling_mode="mean",
