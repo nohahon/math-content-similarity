@@ -24,7 +24,7 @@ class Transformer(nn.Module):
     def __init__(
         self,
         model_name_or_path: str,
-        model_args: Dict = {},
+        model_args,
     ):
         super(Transformer, self).__init__()
 
@@ -60,7 +60,7 @@ class Transformer(nn.Module):
 
     def _load_model(self, model_name_or_path, config, model_args):
         """Loads the transformer model"""
-        if model_args.peft:
+        if model_args['peft']:
             model = AutoModel.from_pretrained(
                 model_name_or_path,
                 config=config,
@@ -99,14 +99,14 @@ class Transformer(nn.Module):
                 d["anchor"],
                 return_tensors="pt",
                 padding="max_length",
-                max_length=self.model_args.max_length,
+                max_length=self.model_args['max_length'],
                 truncation=True,
             )
             tokenized_rec = self.tokenizer(
                 d["rec"],
                 return_tensors="pt",
                 padding="max_length",
-                max_length=self.model_args.max_length,
+                max_length=self.model_args['max_length'],
                 truncation=True,
             )
             return {

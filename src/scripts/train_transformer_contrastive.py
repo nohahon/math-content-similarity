@@ -14,7 +14,7 @@ model_args = {
     "peft": False,
     "pooling_mode": "mean",
 }
-embedding_model = Transformer("BAAI/llm-embedder")
+embedding_model = Transformer("BAAI/llm-embedder",model_args=model_args)
 tokenized_train = embedding_model.tokenize(train_dataset)
 tokenized_dev = embedding_model.tokenize(dev_dataset)
 
