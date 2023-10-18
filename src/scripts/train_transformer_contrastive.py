@@ -9,7 +9,11 @@ wandbc = WandbClient("test")
 train_dataset = pd.read_csv(wandbc.load_dataset("final_train_dataset"))
 dev_dataset = pd.read_csv(wandbc.load_dataset("final_dev_dataset"))
 
-
+model_args = {
+    "max_length": 512,
+    "peft": False,
+    "pooling_mode": "mean",
+}
 embedding_model = Transformer("BAAI/llm-embedder")
 tokenized_train = embedding_model.tokenize(train_dataset)
 tokenized_dev = embedding_model.tokenize(dev_dataset)
