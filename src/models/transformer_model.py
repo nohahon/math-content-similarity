@@ -38,6 +38,7 @@ class Transformer(nn.Module):
         )
 
         self.max_seq_length = max_seq_length
+        self.config = self.language_model.config
 
     def _load_model(self, model_name_or_path, config, **model_args):
         """Loads the transformer model"""

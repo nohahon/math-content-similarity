@@ -31,6 +31,7 @@ class ContrastiveLoss(nn.Module):
         self.distance_metric = distance_metric
         self.margin = margin
         self.model = model
+        self.config = self.model.config
 
     def forward(self, input_ids, attention_mask, labels):
         # get representations from model
