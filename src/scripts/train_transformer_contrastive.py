@@ -1,7 +1,7 @@
 from src.models.transformer_model import Transformer
 from src.models.contrastive_loss import ContrastiveLoss
 from src.wandb_.wandb_client import WandbClient
-
+import huggingface_hub
 
 from transformers import (
     Trainer,
@@ -11,7 +11,10 @@ from transformers import (
 )
 import pandas as pd
 
-wandbc = WandbClient("test_small")
+
+model_name = "BAAI/llm-embedder"
+run_name = model_name.split("/")[-1] + "-fine-tuning"
+wandbc = WandbClient(run_name=run_name)
 train_dataset = pd.read_csv(wandbc.load_dataset("final_train_dataset"))
 dev_dataset = pd.read_csv(wandbc.load_dataset("final_dev_dataset"))
 
@@ -20,7 +23,7 @@ model_args = {
     "peft": False,
     "pooling_mode": "mean",
 }
-embedding_model = Transformer("BAAI/llm-embedder", model_args=model_args)
+embedding_model = Transformer(model_name, model_args=model_args)
 tokenized_train = embedding_model.tokenize(train_dataset)
 tokenized_dev = embedding_model.tokenize(dev_dataset)
 
@@ -28,21 +31,21 @@ loss_model = ContrastiveLoss(embedding_model)
 
 training_args = TrainingArguments(
     report_to="wandb",
-    output_dir="./",
-    overwrite_output_dir=True,
+    output_dir="./checkpoints",
     per_device_eval_batch_size=8,
     per_device_train_batch_size=8,
-    save_total_limit=3,
     num_train_epochs=5,
-    do_eval=True,
+    save_total_limit=3,
     evaluation_strategy="steps",
-    logging_steps=20,
-    eval_steps=20,
+    logging_steps=5,
+    eval_steps=5,
+    save_steps=5,
     disable_tqdm=False,
     weight_decay=0.1,
-    warmup_steps=1,
     learning_rate=4e-5,
-    run_name="test_small",
+    run_name=run_name,
+    metric_for_best_model="eval_loss",
+    save_strategy="steps",
     load_best_model_at_end=True,
 )
 trainer = Trainer(
@@ -52,7 +55,18 @@ trainer = Trainer(
     eval_dataset=tokenized_dev,
     tokenizer=embedding_model.tokenizer,
     data_collator=DataCollatorWithPadding(tokenizer=embedding_model.tokenizer),
-    callbacks=[EarlyStoppingCallback(early_stopping_patience=3)],
+    callbacks=[
+        EarlyStoppingCallback(
+            early_stopping_patience=3,
+            early_stopping_threshold=0.0,
+        ),
+    ],
 )
 trainer.train()
+loss_model.model.language_model.push_to_hub(
+    "horychtom/" + model_name.split("/")[-1] + "-zbmath",
+)
+loss_model.model.tokenizer.push_to_hub(
+    "horychtom/" + model_name.split("/")[-1] + "-zbmath",
+)
 wandbc.finish()
