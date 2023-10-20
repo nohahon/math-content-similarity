@@ -1,17 +1,22 @@
+"""This module contains PyTorch Dataset class for loading data.""" ""
 from torch.utils.data import DataLoader, Dataset
 from config import RANDOM_SEED
 
 
 class TorchDataset(Dataset):
+    """PyTorch Dataset class for loading data."""
+
     def __init__(self, features, labels):
+        """Initialize a TorchDataset object."""
         self.features = features
         self.labels = labels
 
     def __len__(self):
+        """Return the length of the dataset."""
         return len(self.labels)
 
     def __getitem__(self, index):
-        # Access a row from the DataFrame by index
+        """Return a sample from the dataset."""
         sample = self.features[index]
         input_ids = sample["input_ids"]
         attention_mask = sample["attention_mask"]
@@ -23,4 +28,5 @@ class TorchDataset(Dataset):
         }
 
     def get_dataloader(self, batch_size):
+        """Return a DataLoader object for the dataset."""
         return DataLoader(self, batch_size=batch_size, shuffle=True)

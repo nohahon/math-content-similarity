@@ -1,3 +1,4 @@
+"""This module contains the contrastive loss function for the Siamese network."""
 from enum import Enum
 import torch.nn.functional as F
 from torch import nn
@@ -5,9 +6,7 @@ from src.models.transformer_model import Transformer
 
 
 class SiameseDistanceMetric(Enum):
-    """
-    The metric for the contrastive loss
-    """
+    """Distance metric for the siamese network."""
 
     EUCLIDEAN = lambda x, y: F.pairwise_distance(x, y, p=2)
     MANHATTAN = lambda x, y: F.pairwise_distance(x, y, p=1)
@@ -27,6 +26,7 @@ class ContrastiveLoss(nn.Module):
         distance_metric=SiameseDistanceMetric.COSINE_DISTANCE,
         margin: float = 0.5,
     ):
+        """Initialize a ContrastiveLoss object."""
         super(ContrastiveLoss, self).__init__()
         self.distance_metric = distance_metric
         self.margin = margin
@@ -34,7 +34,17 @@ class ContrastiveLoss(nn.Module):
         self.config = self.model.config
 
     def forward(self, input_ids, attention_mask, labels):
-        # get representations from model
+        """
+        Computes the contrastive loss between pairs of sentence embeddings.
+
+        Args:
+            input_ids (torch.Tensor): Input tensor of shape (batch_size, 2, max_seq_len).
+            attention_mask (torch.Tensor): Attention mask tensor of shape (batch_size, 2, max_seq_len).
+            labels (torch.Tensor): Binary labels tensor of shape (batch_size,).
+
+        Returns:
+            dict: A dictionary containing the computed loss value under the 'loss' key.
+        """
         rep_anchor = self.model(
             input_ids=input_ids[:, 0, :],
             attention_mask=attention_mask[:, 0, :],

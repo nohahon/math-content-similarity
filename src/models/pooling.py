@@ -1,3 +1,4 @@
+""" This module contains the pooling layer for the transformer model. """
 import torch
 from torch import Tensor
 from torch import nn
@@ -26,6 +27,7 @@ class PoolingLayer(nn.Module):
         word_embedding_dimension: int,
         pooling_mode: str = "cls",
     ):
+        """Initialize the pooling layer"""
         super(PoolingLayer, self).__init__()
 
         self.config_keys = [
@@ -53,11 +55,27 @@ class PoolingLayer(nn.Module):
         self.word_embedding_dimension = word_embedding_dimension
         self.pooling_output_dimension = word_embedding_dimension
 
-    def forward(self, features: Dict[str, Tensor]):
+    def forward(self, features: Dict[str, Tensor]) -> Dict[str, Tensor]:
+        """
+        Pools the token embeddings by either mean or max pooling.
+
+        Args:
+                features (Dict[str, Tensor]): A dictionary containing the input features.
+                        The dictionary should contain the following keys:
+                        - "token_embeddings": A tensor of shape (batch_size, sequence_length, embedding_size)
+                            containing the token embeddings for each token in the input sequence.
+                        - "attention_mask": A tensor of shape (batch_size, sequence_length) containing the
+                            attention mask for the input sequence.
+
+        Returns:
+                Dict[str, Tensor]: A dictionary containing the output features. The dictionary
+                should contain the following key:
+                - "sentence_embedding": A tensor of shape (batch_size, embedding_size) containing
+                    the sentence embedding for each input sequence.
+        """
         token_embeddings = features["token_embeddings"]
         attention_mask = features["attention_mask"]
 
-        ## Pooling strategy
         output_vectors = []
         if self.pooling_mode_cls_token:
             cls_token = features.get(
@@ -137,17 +155,21 @@ class PoolingLayer(nn.Module):
         return features
 
     def get_sentence_embedding_dimension(self):
+        """Returns the dimension of sentence embeddings."""
         return self.pooling_output_dimension
 
     def get_config_dict(self):
+        """Returns the config of the pooling layer as a dictionary."""
         return {key: self.__dict__[key] for key in self.config_keys}
 
     def save(self, output_path):
+        """Saves the pooling layer to the given output_path."""
         with open(os.path.join(output_path, "config.json"), "w") as fOut:
             json.dump(self.get_config_dict(), fOut, indent=2)
 
     @staticmethod
     def load(input_path):
+        """Loads the pooling layer from the given input_path."""
         with open(os.path.join(input_path, "config.json")) as fIn:
             config = json.load(fIn)
 

@@ -1,3 +1,4 @@
+"""This script uploads the final datasets to wandb.""" ""
 from src.wandb_.wandb_client import WandbClient
 
 wandbc = WandbClient("upload")

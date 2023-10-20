@@ -14,17 +14,18 @@ from src.data.dataset import TorchDataset
 
 
 class Transformer(nn.Module):
-    """Loads the embeddings model
-    :param model_name_or_path
-    :param model_args: Arguments (key, value pairs) passed to the Huggingface Transformers model
-    :param tokenizer_args: Arguments (key, value pairs) passed to the Huggingface Tokenizer model
-    :param tokenizer_name_or_path: Name or path of the tokenizer. When None, then model_name_or_path is used
+    """
+    A PyTorch module that represents a transformer model for computing content similarity between two pieces of text.
+
+    Args:
+        model_name_or_path (str): The name or path of the pre-trained model to load.
+        model_args (dict): A dictionary of arguments to pass to the model during initialization.
     """
 
     def __init__(
         self,
         model_name_or_path: str,
-        model_args,
+        model_args: dict,
     ):
         super(Transformer, self).__init__()
 
@@ -51,8 +52,6 @@ class Transformer(nn.Module):
             model_args=self.model_args,
         )
 
-        
-
         self.pooler_layer = PoolingLayer(
             pooling_mode="mean",
             word_embedding_dimension=lm_config.hidden_size,
@@ -60,8 +59,18 @@ class Transformer(nn.Module):
         self.config = self.language_model.config
 
     def _load_model(self, model_name_or_path, config, model_args):
-        """Loads the transformer model"""
-        if model_args['peft']:
+        """
+        Loads a pre-trained transformer model from the given `model_name_or_path` and `config` using the specified `model_args`.
+
+        Args:
+            model_name_or_path (str): The name or path of the pre-trained model to load.
+            config (PretrainedConfig): The configuration object for the model.
+            model_args (dict): A dictionary of arguments to pass to the model during initialization.
+
+        Returns:
+            model (PreTrainedModel): The loaded pre-trained model.
+        """
+        if model_args["peft"]:
             model = AutoModel.from_pretrained(
                 model_name_or_path,
                 config=config,
@@ -73,7 +82,16 @@ class Transformer(nn.Module):
         return AutoModel.from_pretrained(model_name_or_path, config=config)
 
     def forward(self, input_ids, attention_mask):
-        """Returns token_embeddings, cls_token"""
+        """
+        Forward pass of the transformer model.
+
+        Args:
+            input_ids (torch.Tensor): Input tensor of token ids.
+            attention_mask (torch.Tensor): Input tensor of attention masks.
+
+        Returns:
+            dict: A dictionary containing token embeddings and attention masks.
+        """
         output = self.language_model(
             input_ids,
             attention_mask,
@@ -90,9 +108,14 @@ class Transformer(nn.Module):
         return features
 
     def get_word_embedding_dimension(self) -> int:
+        """Returns the dimension of the word embeddings"""
         return self.language_model.config.hidden_size
 
     def tokenize(self, data: pd.DataFrame):
+        """Tokenizes the input data
+        :param data: pd.DataFrame, input data to be tokenized
+        :return: TorchDataset, tokenized dataset
+        """
         tokenized = []
 
         def tokenize_single_(d):
@@ -100,14 +123,14 @@ class Transformer(nn.Module):
                 d["anchor"],
                 return_tensors="pt",
                 padding="max_length",
-                max_length=self.model_args['max_length'],
+                max_length=self.model_args["max_length"],
                 truncation=True,
             )
             tokenized_rec = self.tokenizer(
                 d["rec"],
                 return_tensors="pt",
                 padding="max_length",
-                max_length=self.model_args['max_length'],
+                max_length=self.model_args["max_length"],
                 truncation=True,
             )
             return {

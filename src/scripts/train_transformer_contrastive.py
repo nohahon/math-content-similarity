@@ -1,3 +1,4 @@
+""" Trains a transformer model with contrastive loss on a given dataset. """
 from src.models.transformer_model import Transformer
 from src.models.contrastive_loss import ContrastiveLoss
 from src.wandb_.wandb_client import WandbClient
@@ -12,12 +13,16 @@ from transformers import (
 import pandas as pd
 
 
+# initiate wandb client with run name
 model_name = "BAAI/llm-embedder"
 run_name = model_name.split("/")[-1] + "-fine-tuning"
 wandbc = WandbClient(run_name=run_name)
+
+# load datasets from wandb
 train_dataset = pd.read_csv(wandbc.load_dataset("final_train_dataset"))
 dev_dataset = pd.read_csv(wandbc.load_dataset("final_dev_dataset"))
 
+# load model and tokenizer
 model_args = {
     "max_length": 512,
     "peft": False,
@@ -27,6 +32,7 @@ embedding_model = Transformer(model_name, model_args=model_args)
 tokenized_train = embedding_model.tokenize(train_dataset)
 tokenized_dev = embedding_model.tokenize(dev_dataset)
 
+# load loss model
 loss_model = ContrastiveLoss(embedding_model)
 
 training_args = TrainingArguments(
@@ -63,6 +69,8 @@ trainer = Trainer(
     ],
 )
 trainer.train()
+
+# push model and tokenizer to huggingface hub
 loss_model.model.language_model.push_to_hub(
     "horychtom/" + model_name.split("/")[-1] + "-zbmath",
 )
