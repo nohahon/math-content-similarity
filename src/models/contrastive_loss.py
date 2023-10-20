@@ -2,7 +2,7 @@
 from enum import Enum
 import torch.nn.functional as F
 from torch import nn
-from src.models.transformer_model import Transformer
+from src.models.transformer_model import EmbeddingModel
 
 
 class SiameseDistanceMetric(Enum):
@@ -22,7 +22,7 @@ class ContrastiveLoss(nn.Module):
 
     def __init__(
         self,
-        model: Transformer,
+        model: EmbeddingModel,
         distance_metric=SiameseDistanceMetric.COSINE_DISTANCE,
         margin: float = 0.5,
     ):

@@ -1,5 +1,5 @@
 """ Trains a transformer model with contrastive loss on a given dataset. """
-from src.models.transformer_model import Transformer
+from src.models.transformer_model import EmbeddingModel
 from src.models.contrastive_loss import ContrastiveLoss
 from src.wandb_.wandb_client import WandbClient
 
@@ -24,10 +24,10 @@ dev_dataset = pd.read_csv(wandbc.load_dataset("final_dev_dataset"))
 # load model and tokenizer
 model_args = {
     "max_length": 512,
-    "peft": False,
+    "load_quantized": False,
     "pooling_mode": "mean",
 }
-embedding_model = Transformer(model_name, model_args=model_args)
+embedding_model = EmbeddingModel(model_name, model_args=model_args)
 tokenized_train = embedding_model.tokenize(train_dataset)
 tokenized_dev = embedding_model.tokenize(dev_dataset)
 

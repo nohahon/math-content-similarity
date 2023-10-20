@@ -2,11 +2,11 @@
 from torch.utils.data import DataLoader, Dataset
 
 
-class TorchDataset(Dataset):
+class CustomTorchDataset(Dataset):
     """PyTorch Dataset class for loading data."""
 
     def __init__(self, features, labels):
-        """Initialize a TorchDataset object."""
+        """Initialize a  CustomTorchDataset object."""
         self.features = features
         self.labels = labels
 

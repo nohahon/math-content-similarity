@@ -8,10 +8,10 @@ from transformers import (
 )
 from src.models.pooling import PoolingLayer
 import pandas as pd
-from src.data.dataset import TorchDataset
+from src.data.dataset import CustomTorchDataset
 
 
-class Transformer(nn.Module):
+class EmbeddingModel(nn.Module):
     """
     A PyTorch module that represents a transformer model for computing content similarity between two pieces of text.
 
@@ -25,7 +25,7 @@ class Transformer(nn.Module):
         model_name_or_path: str,
         model_args: dict,
     ):
-        super(Transformer, self).__init__()
+        super(EmbeddingModel, self).__init__()
 
         self.model_args = model_args
         lm_config = AutoConfig.from_pretrained(model_name_or_path)
@@ -63,7 +63,7 @@ class Transformer(nn.Module):
         Returns:
             model (PreTrainedModel): The loaded pre-trained model.
         """
-        if model_args["peft"]:
+        if model_args["load_quantized"]:
             quantized_model = AutoModel.from_pretrained(
                 model_name_or_path,
                 config=config,
@@ -107,7 +107,7 @@ class Transformer(nn.Module):
     def tokenize(self, data: pd.DataFrame):
         """Tokenizes the input data
         :param data: pd.DataFrame, input data to be tokenized
-        :return: TorchDataset, tokenized dataset
+        :return:  CustomTorchDataset, tokenized dataset
         """
         tokenized = []
 
@@ -144,4 +144,4 @@ class Transformer(nn.Module):
         for idx, row in data.iterrows():
             tokenized.append(tokenize_single_(row))
         labels = data.label.tolist()
-        return TorchDataset(tokenized, labels)
+        return CustomTorchDataset(tokenized, labels)
