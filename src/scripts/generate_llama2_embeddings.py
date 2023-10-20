@@ -35,8 +35,6 @@ def loopThrgandGetEmbedd(loc_json):
         model_path="models_lamma/codellama-7b.Q6_K.gguf",
         embedding=True,
     )
-    # tokenizer = AutoTokenizer.from_pretrained('allenai/scibert_scivocab_uncased')
-    # model = AutoModel.from_pretrained('allenai/scibert_scivocab_uncased')
 
     getlistofjsonl = os.listdir(loc_json)
     for eachJSONL in getlistofjsonl:
@@ -53,5 +51,5 @@ def loopThrgandGetEmbedd(loc_json):
 
 
 loopThrgandGetEmbedd(
-    "C:/Users/asa/Desktop/Projects/22Math_recSys/data/Final_All/allWithComplexity",
+    "C:/Users/asa/Desktop/Projects/22Math_recSys/data/Final_All/allWithComplexity",  # noqa
 )

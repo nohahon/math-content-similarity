@@ -113,8 +113,8 @@ def mainTrain():
         train_dataset=tokenized_dataset["train"],  # training data
         eval_dataset=tokenized_dataset["validation"],  # validation data
         tokenizer=tokenizer,  # define tokenizer
-        data_collator=data_collator,  # this will dynamically pad examples in each batch to be equal length
-        compute_metrics=compute_metrics,  # evaluates model using compute_metrics() function from before
+        data_collator=data_collator,  # this will dynamically pad examples in each batch to be equal length # noqa
+        compute_metrics=compute_metrics,  # evaluates model using compute_metrics() function from before # noqa
     )
 
     # train model

@@ -1,4 +1,4 @@
-""" This module contains the pooling layer for the transformer model. """
+""" This module contains the pooling layer for the transformer model. """  # noqa
 import torch
 from torch import Tensor
 from torch import nn
@@ -20,7 +20,7 @@ class PoolingLayer(nn.Module):
     :param pooling_mode_mean_tokens: Perform mean-pooling
     :param pooling_mode_mean_sqrt_len_tokens: Perform mean-pooling, but devide by sqrt(input_length).
     :param pooling_mode_lasttoken: Perform last token pooling, see https://arxiv.org/abs/2202.08904 & https://arxiv.org/abs/2201.10005
-    """
+    """  # noqa
 
     def __init__(
         self,
@@ -72,7 +72,7 @@ class PoolingLayer(nn.Module):
                 should contain the following key:
                 - "sentence_embedding": A tensor of shape (batch_size, embedding_size) containing
                     the sentence embedding for each input sequence.
-        """
+        """  # noqa
         token_embeddings = features["token_embeddings"]
         attention_mask = features["attention_mask"]
 
@@ -120,13 +120,13 @@ class PoolingLayer(nn.Module):
         if self.pooling_mode_lasttoken:
             bs, seq_len, hidden_dim = token_embeddings.shape
             # attention_mask shape: (bs, seq_len)
-            # Get shape [bs] indices of the last token (i.e. the last token for each batch item)
-            # argmin gives us the index of the first 0 in the attention mask; We get the last 1 index by subtracting 1
+            # Get shape [bs] indices of the last token (i.e. the last token for each batch item) # noqa
+            # argmin gives us the index of the first 0 in the attention mask; We get the last 1 index by subtracting 1 # noqa
             gather_indices = (
                 torch.argmin(attention_mask, 1, keepdim=False) - 1
             )  # Shape [bs]
 
-            # There are empty sequences, where the index would become -1 which will crash
+            # There are empty sequences, where the index would become -1 which will crash # noqa
             gather_indices = torch.clamp(gather_indices, min=0)
 
             # Turn indices from shape [bs] --> [bs, 1, hidden_dim]

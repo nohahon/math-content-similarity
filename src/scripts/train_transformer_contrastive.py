@@ -2,7 +2,6 @@
 from src.models.transformer_model import Transformer
 from src.models.contrastive_loss import ContrastiveLoss
 from src.wandb_.wandb_client import WandbClient
-import huggingface_hub
 
 from transformers import (
     Trainer,

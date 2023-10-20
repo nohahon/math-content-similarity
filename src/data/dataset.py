@@ -1,6 +1,5 @@
 """This module contains PyTorch Dataset class for loading data.""" ""
 from torch.utils.data import DataLoader, Dataset
-from config import RANDOM_SEED
 
 
 class TorchDataset(Dataset):
