@@ -51,5 +51,5 @@ def loopThrgandGetEmbedd(loc_json):
 
 
 loopThrgandGetEmbedd(
-    "C:/Users/asa/Desktop/Projects/22Math_recSys/data/Final_All/allWithComplexity",  # noqa
+    "C:/Users/asa/Desktop/Projects/22Math_recSys/data/Final_All/allWithComplexity",
 )

@@ -19,7 +19,7 @@ class Transformer(nn.Module):
     Args:
         model_name_or_path (str): The name or path of the pre-trained model to load.
         model_args (dict): A dictionary of arguments to pass to the model during initialization.
-    """  # noqa
+    """
 
     def __init__(
         self,
@@ -68,7 +68,7 @@ class Transformer(nn.Module):
 
         Returns:
             model (PreTrainedModel): The loaded pre-trained model.
-        """  # noqa
+        """
         if model_args["peft"]:
             model = AutoModel.from_pretrained(
                 model_name_or_path,
@@ -90,7 +90,7 @@ class Transformer(nn.Module):
 
         Returns:
             dict: A dictionary containing token embeddings and attention masks.
-        """  # noqa
+        """
         output = self.language_model(
             input_ids,
             attention_mask,

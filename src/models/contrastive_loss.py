@@ -1,4 +1,4 @@
-"""This module contains the contrastive loss function for the Siamese network."""  # noqa
+"""This module contains the contrastive loss function for the Siamese network."""
 from enum import Enum
 import torch.nn.functional as F
 from torch import nn
@@ -18,7 +18,7 @@ class ContrastiveLoss(nn.Module):
     Contrastive loss. Expects as input two texts and a label of either 0 or 1. If the label == 1,
     then the distance between the two embeddings is reduced. If the label == 0, then the distance
     between the embeddings is increased.
-    """  # noqa
+    """
 
     def __init__(
         self,
@@ -44,7 +44,7 @@ class ContrastiveLoss(nn.Module):
 
         Returns:
             dict: A dictionary containing the computed loss value under the 'loss' key.
-        """  # noqa
+        """
         rep_anchor = self.model(
             input_ids=input_ids[:, 0, :],
             attention_mask=attention_mask[:, 0, :],
