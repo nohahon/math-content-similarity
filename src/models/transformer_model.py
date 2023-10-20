@@ -6,7 +6,6 @@ from transformers import (
     AutoConfig,
     BitsAndBytesConfig,
 )
-from peft import get_peft_model, LoraConfig
 from src.models.pooling import PoolingLayer
 import pandas as pd
 from src.data.dataset import TorchDataset
@@ -40,11 +39,6 @@ class Transformer(nn.Module):
             bnb_4bit_quant_type="nf4",
             bnb_4bit_use_double_quant=True,
         )
-        self.peft_config = LoraConfig(
-            r=4,
-            lora_alpha=32,
-            lora_dropout=0.01,
-        )
         self.language_model = self._load_model(
             model_name_or_path,
             lm_config,
@@ -70,13 +64,13 @@ class Transformer(nn.Module):
             model (PreTrainedModel): The loaded pre-trained model.
         """
         if model_args["peft"]:
-            model = AutoModel.from_pretrained(
+            quantized_model = AutoModel.from_pretrained(
                 model_name_or_path,
                 config=config,
                 quantization_config=self.quantization_config,
             )
             self.tokenizer.pad_token_id = 0
-            return get_peft_model(model, self.peft_config)
+            return quantized_model
 
         return AutoModel.from_pretrained(model_name_or_path, config=config)
 
