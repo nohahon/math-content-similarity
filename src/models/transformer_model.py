@@ -8,7 +8,7 @@ from transformers import (
 )
 from src.models.pooling import PoolingLayer
 import pandas as pd
-from src.data.dataset import CustomTorchDataset
+from src.data.custom_dataset import CustomTorchDataset
 
 
 class EmbeddingModel(nn.Module):
