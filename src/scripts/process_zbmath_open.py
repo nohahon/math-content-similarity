@@ -146,6 +146,26 @@ def transform_data(d):
     return merged_final
 
 
+def create_splits(df):
+    """
+    Creates train, dev, and test splits from the input DataFrame.
+
+    Args:
+        df (pandas.DataFrame): Input DataFrame with columns 'msc', 'de_x', 'de_y', 'en_x', 'en_y', and 'msc_len'.
+
+    Returns:
+        pandas.DataFrame: Train split.
+        pandas.DataFrame: Dev split.
+        pandas.DataFrame: Test split.
+    """
+    print("Creating splits...")
+    df = df.sample(frac=1, random_state=42)
+    train = df.iloc[: int(len(df) * 0.8)]
+    dev = df.iloc[int(len(df) * 0.8) : int(len(df) * 0.9)]
+    test = df.iloc[int(len(df) * 0.9) :]
+    return train, dev, test
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -160,8 +180,14 @@ def main():
     df = load_data(args.file_path)
     df = clean_data(df)
     df = transform_data(df)
+
+    train, dev, test = create_splits(df)
+
     logging.info("Saving data...")
-    df.to_parquet(args.file_path.replace(".csv", "_processed.parquet"))
+    train.to_parquet(args.file_path.replace(".csv", "_train.parquet"))
+    dev.to_parquet(args.file_path.replace(".csv", "_dev.parquet"))
+    test.to_parquet(args.file_path.replace(".csv", "_test.parquet"))
+    logging.info("Done.")
 
 
 if __name__ == "__main__":
