@@ -1,5 +1,3 @@
-import pickle
-
 import sys
 import numpy as np
 import pickle as pkl
@@ -41,7 +39,6 @@ def repeat_data(data, rep_num):
         data[i] = np.reshape(np.tile(data_i, tile_shape), new_shape).tolist()
     return data
 
-
 def load_parse_from_json(parse, setting_path):
     with open(setting_path, 'r') as f:
         setting = json.load(f)
@@ -78,7 +75,6 @@ def load_file(save_file):
     for line in data:
         records.append([eval(v) for v in line.split('\t')])
     return records
-
 
 def construct_ranker_data(data):
     target_user, target_item_dens, target_item_spar, profiles, label, list_len = [], [], [], [], [], []
@@ -128,27 +124,66 @@ def construct_behavior_data(data, max_len):
 
 
 def rank(data, preds, out_file):
-    users, profiles, item_spars, item_denss, labels, list_lens = data
-    print('origin', item_spars[-1], labels[-30:], len(item_spars), len(list_lens), sum(list_lens), len(preds))
-    out_user, out_itm_spar, out_itm_dens, out_label, out_pos = [], [], [], [], []
-    idx = 0
-    for i, length in enumerate(list_lens):
-        item_spar, item_dens = item_spars[idx: idx + length], item_denss[idx: idx + length]
+
+    possamp, negsamp = pkl.load(open(data, 'rb'))
+    print("Length of predicted labels: ", len(preds))
+    print("Length of pos samples: ", len(possamp))
+    print("Length of neg samples: ", len(negsamp))
+    #for eachP in preds:
+        #print(eachP)
+    aggregat = defaultdict(lambda:list())
+    labels = []
+    out_user = [1.0]  #will have to change this for citeULike
+    count_ = 0
+    for eachEle in possamp:
+        aggregat[eachEle[0]].append([eachEle[1], preds[count_], 1.0])
+        count_ += 1
+        #print("eachEle: ", eachEle)
+        #sys.exit(0)
+        labels.append(1.0)
+    for eachEle in negsamp:
+        aggregat[eachEle[0]].append([eachEle[1], preds[count_], 0.0])
+        #aggregat.append([eachEle, preds[count_], 0.0])
+        count_ += 1
+        labels.append(0.0)
+
+    aggregat_sort = dict()
+    for eachA in aggregat.keys():
+        aggregat_sort[eachA] = sorted(aggregat[eachA], key=lambda x: x[1], reverse=True)
+
+    #print("aggregated sample sorted: ", aggregat_sort)
+    print("Lenght of test labels and enght of predicted scores: ", len(labels), len(preds))
+
+    with open(out_file, 'wb') as f:
+        pickle.dump([out_user, labels], f)
+    #users, profiles, item_spars, item_denss, labels, list_lens = data
+    #print('origin', item_spars[-1], labels[-30:], len(item_spars), len(list_lens), sum(list_lens), len(preds))
+    #out_user, out_itm_spar, out_itm_dens, out_label, out_pos = [], [], [], [], []
+    #idx = 0
+    #for i, length in enumerate(list_lens):
+    #    item_spar, item_dens = item_spars[idx: idx + length], item_denss[idx: idx + length]
         # user_spar, user_dens = user_spars[idx], user_denss[idx]
-        label, pred = labels[idx: idx + length], preds[idx: idx + length]
-        rerank_idx = sorted(list(range(len(pred))), key=lambda k: pred[k], reverse=True)
-        out_user.append(users[i])
-        out_itm_spar.append(np.array(item_spar)[rerank_idx].tolist())
-        out_itm_dens.append(np.array(item_dens)[rerank_idx].tolist())
+    #    label, pred = labels[idx: idx + length], preds[idx: idx + length]
+    #    print("label: ", label)
+    #    print("pred: ", pred)
+    #    rerank_idx = sorted(list(range(len(pred))), key=lambda k: pred[k], reverse=True)
+    #    print("rerank_idx: ", rerank_idx)
+    #    out_user.append(users[i])
+    #    print("users[i]: ", users[i])
+    #    out_itm_spar.append(np.array(item_spar)[rerank_idx].tolist())
+    #    out_itm_dens.append(np.array(item_dens)[rerank_idx].tolist())
+    #    print("np.array(item_spar)[rerank_idx].tolist(): ", np.array(item_spar)[rerank_idx].tolist())
         # out_usr_spar.append(user_spar)
         # out_usr_dens.append(user_dens)
-        out_label.append(np.array(label)[rerank_idx].tolist())
-        out_pos.append(np.arange(length)[rerank_idx].tolist())
-        idx += length
+    #    out_label.append(np.array(label)[rerank_idx].tolist())
+    #    print("np.array(label)[rerank_idx].tolist(): ", np.array(label)[rerank_idx].tolist())
+    #    out_pos.append(np.arange(length)[rerank_idx].tolist())
+    #    print("np.arange(length)[rerank_idx].tolist(): ", np.arange(length)[rerank_idx].tolist())
+    #    idx += length
+    #    sys.exit(0)
     # print(len(out_itm_spar), out_label[-1], out_itm_spar[-1])
-    with open(out_file, 'wb') as f:
-        pickle.dump([out_user, profiles, out_itm_spar, out_itm_dens, out_label, out_pos, list_lens], f)
-
+    #with open(out_file, 'wb') as f:
+    #    pickle.dump([out_user, profiles, out_itm_spar, out_itm_dens, out_label, out_pos, list_lens], f)
 
 def get_last_click_pos(my_list):
     if sum(my_list) == 0 or sum(my_list) == len(my_list):
@@ -193,7 +228,6 @@ def construct_list_with_profile(data_dir, max_time_len, max_seq_len, props, prof
         de_lb = []
         for j in range(len(label_i)):
             de_lb.append(label_i[j] / props[itm_spar_i[j][1]][pos_i[j]])
-
         if len(itm_spar_i) >= max_time_len:
             cut_itm_spar.append(itm_spar_i[: max_time_len])
             cut_itm_dens.append(itm_dens_i[: max_time_len])
@@ -235,7 +269,7 @@ def construct_list_with_profile(data_dir, max_time_len, max_seq_len, props, prof
 
     print(max_interval, min_interval)
 
-    return user_prof, cut_itm_spar, cut_itm_dens, cut_usr_spar, cut_usr_dens, cut_label, cut_hist_pos, list_len, seq_len, cut_pos, de_label
+        return user_prof, cut_itm_spar, cut_itm_dens, cut_usr_spar, cut_usr_dens, cut_label, cut_hist_pos, list_len, seq_len, cut_pos, de_label
 
 
 def get_sim_hist(profile_group, usr_profile):
@@ -315,7 +349,6 @@ def construct_list_with_profile_sim_hist(data_dir, max_time_len, max_seq_len, pr
 
     return user_prof, cut_itm_spar, cut_itm_dens, cut_usr_spar, cut_usr_dens, cut_label, cut_hist_pos, list_len, seq_len, cut_pos, de_label
 
-
 def rerank(attracts, terms):
     val = np.array(attracts) * np.array(np.ones_like(terms))
     return sorted(range(len(val)), key=lambda k: val[k], reverse=True)
@@ -355,8 +388,6 @@ def evaluate(labels, preds, scope_number, props, cates, poss, is_rank):
         clicks.append(sum(clicks[:scope_number]))
     return np.mean(np.array(map)), np.mean(np.array(ndcg)), np.mean(np.array(clicks)), np.mean(np.array(utility)), \
             [map, ndcg, clicks, utility]
-
-
 
 def evaluate_multi(labels, preds, scope_number, is_rank, _print=False):
     ndcg, map, clicks = [[] for _ in range(len(scope_number))], [[] for _ in range(len(scope_number))], [[] for _ in range(len(scope_number))]
