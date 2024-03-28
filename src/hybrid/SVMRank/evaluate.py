@@ -50,6 +50,6 @@ if __name__ == "__main__":
 
     # evaluate F1
     result = subprocess.run(
-        ["python", "eval_predictions.py", "--split", f"{split}"],
+        ["python", "./scripts/eval_predictions.py", "--split", f"{split}"],
         capture_output=False,
     )

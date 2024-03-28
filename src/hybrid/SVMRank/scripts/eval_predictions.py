@@ -83,6 +83,8 @@ if __name__ == "__main__":
         default=True,
     )
 
+    k_ = 100
+
     args = parser.parse_args()
 
     with open("svm_predictions", "r") as f:
@@ -98,14 +100,14 @@ if __name__ == "__main__":
         random_r = 0
         random_f1 = 0
         for i in tqdm(range(10000)):
-            p, r, f1 = P_R_F1_at_k_random(10, rec_dict, ids)
+            p, r, f1 = P_R_F1_at_k_random(k_, rec_dict, ids)
             random_p += p
             random_r += r
             random_f1 += f1
         print(random_f1 / 10000)
 
     else:
-        p, r, f1 = P_R_F1_at_k(10, rec_dict, ids, preds)
+        p, r, f1 = P_R_F1_at_k(k_, rec_dict, ids, preds)
         if args.eval_baseline:
             with open(f"./data/zbmath/seedToembed.pkl", "rb") as f:
                 embeddings = pkl.load(f)
@@ -114,7 +116,7 @@ if __name__ == "__main__":
             for k in list(rec_dict.keys()):
                 for id in ids:
                     scores.append(COS_SIM(embeddings[k], embeddings[id]))
-            p_b, r_b, f1_b = P_R_F1_at_k(10, rec_dict, ids, scores)
+            p_b, r_b, f1_b = P_R_F1_at_k(k_, rec_dict, ids, scores)
 
-        # print(f1_b)
-        print(f1)
+        print(f"baseline: {f1_b}")
+        print(f"SVMrank: {f1}")

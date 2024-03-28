@@ -11,10 +11,15 @@ if __name__ == "__main__":
 
     # create training data
     _ = subprocess.run(
-        ["python", "prepare_train_data.py", "--n_dim", str(n_dim)],
+        ["python", "./scripts/prepare_train_data.py", "--n_dim", str(n_dim)],
     )
 
     # create testing data
     _ = subprocess.run(
-        ["python", "prepare_dev_test_data.py", "--n_dim", str(n_dim)],
+        [
+            "python",
+            "./scripts/prepare_dev_test_data.py",
+            "--n_dim",
+            str(n_dim),
+        ],
     )
