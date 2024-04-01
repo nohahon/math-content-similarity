@@ -2,17 +2,24 @@
 import pickle
 import pandas as pd
 from tqdm import tqdm
-from sklearn.decomposition import PCA
+from src.myutils import transform_embedding_mat
 import numpy as np
 import argparse
 
 
-def transform_embedding_mat(embedding_matrix, n_components):
-    pca = PCA(n_components=n_components)
-    return pca.fit_transform(embedding_matrix)
-
-
 def make_single_test_query_string(q, q_id, ids, embeddings):
+    """
+    Creates a single test query string for ranking.
+
+    Args:
+        q (str): The query.
+        q_id (int): The query ID.
+        ids (list): The list of unique IDs.
+        embeddings (dict): The dictionary of embeddings.
+
+    Returns:
+        str: The test query string.
+    """
     q_emb = embeddings[q]
 
     lines = []
@@ -32,6 +39,17 @@ def make_single_test_query_string(q, q_id, ids, embeddings):
 
 
 def make_all_queries_string(rec_dict, ids, embeddings):
+    """
+    Creates a string containing all the test queries for ranking.
+
+    Args:
+        rec_dict (dict): The dictionary of positive queries and their corresponding recommendations.
+        ids (list): The list of unique IDs.
+        embeddings (dict): The dictionary of embeddings.
+
+    Returns:
+        str: The string containing all the test queries.
+    """
     idx = 153
     queries = []
     for pos_query in tqdm(rec_dict.keys()):
@@ -44,6 +62,16 @@ def make_all_queries_string(rec_dict, ids, embeddings):
 
 
 def create_data(pos, neg, feature_map, split: str, n_dim: int):
+    """
+    Creates the data for training or testing the SVMRank model.
+
+    Args:
+        pos (list): The list of positive query-recommendation pairs.
+        neg (list): The list of negative query-recommendation pairs.
+        feature_map (dict): The dictionary mapping IDs to embeddings.
+        split (str): The split name (e.g., "train", "test", "dev").
+        n_dim (int): The number of dimensions for the transformed embeddings.
+    """
     # create unique id list
     ids = []
     for k, v in pos:

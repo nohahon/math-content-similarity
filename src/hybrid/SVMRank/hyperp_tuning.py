@@ -5,6 +5,29 @@ import pandas as pd
 
 
 def train_model(c, p, o, w, t, n_dim):
+    """
+    Trains a model using SVM-Rank algorithm.
+
+    This function trains a model using the SVM-Rank algorithm by executing the 'svm_rank_learn' command-line tool.
+    It takes the following parameters:
+    - c: The trade-off parameter for training.
+    - p: The epsilon parameter for training.
+    - o: The loss function option for training.
+    - w: The weight option for training.
+    - t: The kernel type for training.
+    - n_dim: The dimension of the data.
+
+    Parameters:
+        c (int): The trade-off parameter for training.
+        p (int): The epsilon parameter for training.
+        o (int): The loss function option for training.
+        w (int): The weight option for training.
+        t (int): The kernel type for training.
+        n_dim (int): The dimension of the data.
+
+    Returns:
+        int: The return code of the 'svm_rank_learn' command-line tool.
+    """
     command = [
         "./svm_rank_learn",
         "-c",
@@ -29,6 +52,17 @@ def train_model(c, p, o, w, t, n_dim):
 
 
 def predict():
+    """
+    Makes predictions using the trained model.
+
+    This function makes predictions using the trained model by executing the 'svm_rank_classify' command-line tool.
+
+    Parameters:
+        None
+
+    Returns:
+        int: The return code of the 'svm_rank_classify' command-line tool.
+    """
     command = [
         "./svm_rank_classify",
         "./data/dev/dev.dat",
@@ -43,6 +77,18 @@ def predict():
 
 
 def clean_data():
+    """
+    Cleans the data by removing the trained model file and svm_predictions file.
+
+    This function removes the 'model_trained.dat' file located in the 'data/train' directory
+    and the 'svm_predictions' file from the current working directory.
+
+    Parameters:
+        None
+
+    Returns:
+        None
+    """
     subprocess.run(
         ["rm", "data/train/model_trained.dat", "svm_predictions"],
         capture_output=False,
