@@ -2,17 +2,25 @@
 import pickle
 import pandas as pd
 import random
-from sklearn.decomposition import PCA
+from src.myutils import transform_embedding_mat
 import numpy as np
 import argparse
 
 
-def transform_embedding_mat(embedding_matrix, n_components):
-    pca = PCA(n_components=n_components)
-    return pca.fit_transform(embedding_matrix)
-
-
 def make_single_query_string(q, idx, rec, neg, embeddings):
+    """
+    Create a single query string for training data.
+
+    Args:
+        q (str): The query.
+        idx (int): The query index.
+        rec (str): The positive recommendation.
+        neg (str): The negative recommendation.
+        embeddings (dict): Dictionary of embeddings.
+
+    Returns:
+        str: The query string.
+    """
     q_emb = embeddings[q]
     rec_emb = embeddings[rec]
     neg_emb = embeddings[neg]
@@ -37,6 +45,17 @@ def make_single_query_string(q, idx, rec, neg, embeddings):
 
 
 def make_all_queries_string(pos_dict, neg_dict, embeddings):
+    """
+    Create a string of all queries for training data.
+
+    Args:
+        pos_dict (dict): Dictionary of positive recommendations.
+        neg_dict (dict): Dictionary of negative recommendations.
+        embeddings (dict): Dictionary of embeddings.
+
+    Returns:
+        str: The string of all queries.
+    """
     idx = 1
     queries = []
     for q in pos_dict.keys():

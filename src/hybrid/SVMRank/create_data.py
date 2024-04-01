@@ -2,7 +2,16 @@ import argparse
 import subprocess
 
 
-if __name__ == "__main__":
+def create_data():
+    """
+    Creates training and testing data for SVMRank model.
+
+    Args:
+        --n_dim (int, optional): Number of dimensions for the data. Defaults to 200.
+
+    Returns:
+        None
+    """
     parser = argparse.ArgumentParser()
     parser.add_argument("--n_dim", type=int, required=False, default=200)
     args = parser.parse_args()
@@ -23,3 +32,7 @@ if __name__ == "__main__":
             str(n_dim),
         ],
     )
+
+
+if __name__ == "__main__":
+    create_data()

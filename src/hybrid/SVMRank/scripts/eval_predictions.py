@@ -8,6 +8,19 @@ COS_SIM = lambda x, y: np.dot(x, y) / (np.linalg.norm(x) * np.linalg.norm(y))
 
 
 def P_R_F1_at_k_random(k, rec_dict, ids):
+    """
+    Calculate precision, recall, and F1-score at k for random predictions.
+
+    Args:
+        k (int): The value of k.
+        rec_dict (dict): Dictionary containing recommendation lists for each query.
+        ids (list): List of item IDs.
+
+    Returns:
+        float: Mean precision at k.
+        float: Mean recall at k.
+        float: Mean F1-score at k.
+    """
     recalls = []
     precisions = []
     f1s = []
@@ -38,6 +51,20 @@ def P_R_F1_at_k_random(k, rec_dict, ids):
 
 
 def P_R_F1_at_k(k, rec_dict, ids, preds):
+    """
+    Calculate precision, recall, and F1-score at k for given predictions.
+
+    Args:
+        k (int): The value of k.
+        rec_dict (dict): Dictionary containing recommendation lists for each query.
+        ids (list): List of item IDs.
+        preds (list): List of prediction scores.
+
+    Returns:
+        float: Mean precision at k.
+        float: Mean recall at k.
+        float: Mean F1-score at k.
+    """
     recalls = []
     precisions = []
     f1s = []
