@@ -3,6 +3,7 @@
 # website: http://jupyter.org/
 
 */elastic.ipynb
+*/simple_pipeline
 
 .ipynb_checkpoints
 */.ipynb_checkpoints/*
