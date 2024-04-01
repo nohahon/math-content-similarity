@@ -1,7 +1,6 @@
-import sys
-import math
 import numpy as np
 import jsonlines
+
 
 def P_R_F1_at_k(k, resultsFile):
     """
@@ -25,7 +24,9 @@ def P_R_F1_at_k(k, resultsFile):
                 continue
             predicted = line["baselineRcmnds"]
             predicted = set(
-                [str(rec[0]) for _, rec in predicted.items() if int(_) > 0][:k],
+                [str(rec[0]) for _, rec in predicted.items() if int(_) > 0][
+                    :k
+                ],
             )  # {0:[rec_id,similarity_score],1:[rec_id,similarity_score],..}
 
             hits = len(predicted.intersection(gold_recs))
@@ -46,6 +47,7 @@ def P_R_F1_at_k(k, resultsFile):
             f1s.append(f1)
 
         return np.mean(precisions), np.mean(recalls), np.mean(f1s)
+
 
 resultsFile = "/beegfs/schubotz/ankit/code/evaluation/hybridApproach/scores/rslts_comBined.jsonl"
 print(P_R_F1_at_k(3, resultsFile))
