@@ -354,21 +354,23 @@ class LambdaMART:
         """
         data = np.array(test_dataset)
         query_indexes = group_queries(data, 1)
-        pds = 0
         #print("@@@@@@@@@@")
         #print("Query indexes are here: ",query_indexes)
         predicted_scores = np.zeros(len(data))
         for query in query_indexes:
-            pds += 1
             results = np.zeros(len(query_indexes[query]))
             for tree in self.trees:
                 #print("self.learning_rate: ", self.learning_rate)
                 #print("query_indexes[query]: ", query_indexes[query])
                 results += self.learning_rate * tree.predict(data[query_indexes[query], 2:])
+                #print("Just prediction: ", tree.predict(data[query_indexes[query], 2:]))
                 #print("data[query_indexes[query], 2:]: lenaa ", len(data[query_indexes[query], 2:][0]))
                 #print("tree.predict(data[query_indexes[query], 2:]: ", tree.predict(data[query_indexes[query], 2:]))
                 #kya = self.learning_rate * tree.predict(data[query_indexes[query], 2:])
                 #print("self.learning_rate * tree.predict(data[query_indexes[query], 1:]): ", kya)
+                #print("Here: ", len(data[query_indexes[query], 2:][0]))
+                #print("Here: ", len(data[query_indexes[query]][0]))
+                #print("Here: ", tree.predict(data[query_indexes[query], 2:]))
                 #print("results: ", results)
                 #sys.exit(0)
             #if pds < 20:

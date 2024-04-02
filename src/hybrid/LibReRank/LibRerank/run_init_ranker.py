@@ -5,6 +5,7 @@ import tensorflow as tf
 from sklearn.metrics import log_loss, roc_auc_score
 import time
 
+from collections import defaultdict
 from librerank.utils import *
 from librerank.ranker import LambdaMART, DNN
 
@@ -166,24 +167,38 @@ def get_data_test(dataset, embed_dir, exclude_Ids):
     2. Get seed and every doc other than train and valid samples as test case and calclate eval scores
     """
     records, labels = [],[]
-    file_path = "/beegfs/schubotz/ankit/data/zbMATH_titles.csv"
-    alldocIDs = set()
-    with open(file_path, 'r', encoding='utf-8') as csvfile:
-        csvreader = csv.reader(csvfile) 
-        next(csvreader)
-        for cs_ in csvreader:
-            alldocIDs.add(cs_[0])
-    print("Length of all docs: ", len(alldocIDs))
-    print("Why are you ?")
-    print("Lenaaaaa: ", len(exclude_Ids))
-    #sys.exit(0)
-    #test_coll =  # list of all doc IDs that are not in train & valid
+    #seed_potRec_order = list() #only required to save order
+    titls_embed = "/beegfs/schubotz/ankit/code/evaluation/hybridApproach/re-ranker/LibRerank/Data/zbmath/titlesEmbed.pkl"
+    possamp, negsamp = pkl.load(open(dataset, 'rb'))
+    embeddings = pkl.load(open(titls_embed, 'rb'))
+    seedTorec_map = defaultdict(lambda:list())
+    for eachS in possamp:
+        seedTorec_map[eachS[0]].append(eachS[1])
+    listOfalneg = set(embeddings.keys()) - set(seedTorec_map.keys())
+    for eachS in seedTorec_map.keys():
+        seedEMb = embeddings[eachS]
+        for eachPotrec in listOfalneg:
+            recEMB = embeddings[eachPotrec]
+            if eachPotrec in seedTorec_map[eachS]:
+                labl = 1.0
+            else:
+                labl = 0.0
+            #seed_potRec_order.append([eachS, eachPotrec])
+            itm_emd = np.reshape(np.array(seedEMb+recEMB), -1)
+            records.append([labl, 1.0]+itm_emd.tolist())
+            labels.append(labl)
+            #for evalscores calculation use the same as above to get seed_id, rec_id and pred label
+    print("len of test data: ", len(records))
+    #only needed if we have to save seed and pot rec pairs
+    #with open('seed_potRec_abstract.pkl', 'wb') as f_:
+    #    pkl.dump(seed_potRec_order, f_)    
+    #print("Len of seed and rec doc order", len(seed_potRec_order))
     return records, labels
-
 
 def get_data(dataset, embed_dir):
     #users, profiles, item_spars, item_denss, labels, list_lens = dataset
     possamp, negsamp = pkl.load(open(dataset, 'rb'))
+    embed_dir = "/beegfs/schubotz/ankit/code/evaluation/hybridApproach/re-ranker/LibRerank/Data/zbmath/titlesEmbed.pkl"
     embeddings = pkl.load(open(embed_dir, 'rb'))
     records = []
     labels = []
@@ -192,7 +207,7 @@ def get_data(dataset, embed_dir):
         seedEMb = embeddings[eachEle[0]]
         recEMB = embeddings[eachEle[1]]
         itm_emd = np.reshape(np.array(seedEMb+recEMB), -1)
-        record_i = [1.0, 1.0] + itm_emd.tolist()
+        record_i = [1.0,1.0]+itm_emd.tolist()
         labels.append(1.0)
         records.append(record_i)
 
@@ -200,20 +215,10 @@ def get_data(dataset, embed_dir):
         seedEMb = embeddings[eachEle[0]]
         recEMB = embeddings[eachEle[1]]
         itm_emd = np.reshape(np.array(seedEMb+recEMB), -1)
-        record_i = [0.0, 1.0] + itm_emd.tolist()
+        record_i = [0.0,1.0]+itm_emd.tolist()
         labels.append(0.0)
         records.append(record_i)
 
-    #for itm_spar_i, itm_dens_i, label_i, uid_i in zip(item_spars, item_denss, labels, users):
-    #    itm_emd = np.reshape(np.array(embeddings[itm_spar_i]), -1)
-        # record_i = [label_i, uid_i] + itm_emd.tolist() + itm_dens_i
-        #if uid_idx < 100:
-        #    print("Lable and user ID: ",label_i, uid_i)
-    #    record_i = [label_i, uid_i] + itm_emd.tolist()
-    #    uid_idx += 1
-    #    records.append(record_i)
-    #print("Lenght of labels: ",len(labels),"Length of record: ", len(records))
-    #sys.exit(0)
     return records, labels
 
 def train_mart(train_file, val_file, test_file, embed_dir, processed_dir,
@@ -229,11 +234,14 @@ def train_mart(train_file, val_file, test_file, embed_dir, processed_dir,
     print("Training done...............")
     print('test set')
     test_data, labels = get_data_test(test_file, embed_dir, train_IDs())
-    sys.exit(0)
     #print("Test data and labels 1: ", test_data[0], labels[0])
     test_pred = model.predict(test_data)
     print("Testing done...............")
 
+    #save predictedlables
+    with open('pred_titles_lgb_lambdMART.pkl', 'wb') as f_:
+        pkl.dump(test_pred, f_)
+    sys.exit(0)
     rank(test_file, test_pred, processed_dir + parse.model_type +'.rankings.test')
 
     logloss = log_loss(labels, test_pred)
