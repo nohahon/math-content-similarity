@@ -8,7 +8,8 @@ import time
 from collections import defaultdict
 from librerank.utils import *
 from librerank.ranker import LambdaMART, DNN
-
+sys.path.append('/beegfs/schubotz/ankit/code/mabowdor')
+import mabowdorScores
 
 def eval(model, sess, data, reg_lambda, batch_size):
     preds = []
@@ -151,6 +152,23 @@ def train(train_file, val_file, test_file, eb_dim, feature_size, itm_spar_fnum,
         with open('{}/logs_{}/ranker/{}.pkl'.format(parse.save_dir, data_set_name, model_name), 'wb') as f:
             pkl.dump(training_monitor, f)
 
+def getFeatuResRe(seed_):
+    """
+    lod all top 1k recommendations and retrun seeds
+    """
+    locati_ = "/beegfs/schubotz/ankit/code/evaluation/hybridApproach/scores/top1krec/"
+    abstr = pickle.load(open(locati_+"abstract.pkl", 'rb'))
+    citn = pickle.load(open(locati_+"citation.pkl", 'rb'))
+    keywrd = pickle.load(open(locati_+"kywrd_withstdvl.pkl", 'rb'))
+    math = pickle.load(open(locati_+"math_withstdvl.pkl", 'rb'))
+    msc = pickle.load(open(locati_+"msc_withstdvl.pkl", 'rb'))
+    titls = pickle.load(open(locati_+"title.pkl", 'rb'))
+    if seed_ in citn.keys():
+        citn_val = citn[seed_][:1000]
+    else:
+        citn_val = []
+    return abstr[seed_][:1000],citn_val, keywrd[seed_][:1000], math[seed_][:1000], msc[seed_][:1000], titls[seed_][:1000]
+
 def train_IDs():
     trainsamp = pkl.load(open("Data/zbmath/train_posandnegPairs.pkl", 'rb'))
     validsamp = pkl.load(open("Data/zbmath/valid_posandnegPairs.pkl", 'rb'))
@@ -195,6 +213,32 @@ def get_data_test(dataset, embed_dir, exclude_Ids):
     #print("Len of seed and rec doc order", len(seed_potRec_order))
     return records, labels
 
+def get_data_r(dataset, embed_dir):
+    # getting re-ranker training data
+    possamp, negsamp = pkl.load(open(dataset, 'rb'))
+    records = []
+    labels = []
+    seedToidlrcmnds = mabowdorScores.getidealRecommendations()
+    
+    seedrecPrs = list()
+    pos_seeds = set([eachEle[0] for eachEle in possamp])
+    for eachSeed in pos_seeds:
+        abs_, cits, kwr, mth, msc, ttle =  getFeatuResRe(eachSeed)
+        #for id_,eachF in enumerate([abs_, kwr, mth, msc, ttle]):
+        for id_,eachF in enumerate([abs_, cits, kwr, mth, msc, ttle]):
+            for eachEle in eachF:
+                if eachEle[0] in seedToidlrcmnds[eachSeed]:
+                    records.append([1.0, 1.0, eachEle[1],id_])
+                    labels.append(1.0)
+                    seedrecPrs.append([eachSeed,eachEle[0]])
+                else:
+                    records.append([0.0, 1.0, eachEle[1],id_])
+                    labels.append(0.0)
+                    seedrecPrs.append([eachSeed,eachEle[0]])
+    with open("testData_rerank.pkl", "wb") as wpf:
+        pickle.dump(seedrecPrs, wpf)
+    return records, labels
+
 def get_data(dataset, embed_dir):
     #users, profiles, item_spars, item_denss, labels, list_lens = dataset
     possamp, negsamp = pkl.load(open(dataset, 'rb'))
@@ -223,7 +267,7 @@ def get_data(dataset, embed_dir):
 
 def train_mart(train_file, val_file, test_file, embed_dir, processed_dir,
                tree_num=300, lr=0.05, tree_type='lgb'):
-    training_data, labels = get_data(train_file, embed_dir)
+    training_data, labels = get_data_r(train_file, embed_dir)
     print("Length of training data and labels: ", len(training_data), len(labels))
     model = LambdaMART(training_data, tree_num, lr, tree_type)
     model.fit()
@@ -233,13 +277,14 @@ def train_mart(train_file, val_file, test_file, embed_dir, processed_dir,
     training_data = []
     print("Training done...............")
     print('test set')
-    test_data, labels = get_data_test(test_file, embed_dir, train_IDs())
+    test_data, labels = get_data_r(test_file, embed_dir)
+    sys.exit(0)
     #print("Test data and labels 1: ", test_data[0], labels[0])
     test_pred = model.predict(test_data)
     print("Testing done...............")
 
     #save predictedlables
-    with open('pred_titles_lgb_lambdMART.pkl', 'wb') as f_:
+    with open('pred_rerank_all_lgb_lambdMART.pkl', 'wb') as f_:
         pkl.dump(test_pred, f_)
     sys.exit(0)
     rank(test_file, test_pred, processed_dir + parse.model_type +'.rankings.test')
