@@ -17,7 +17,7 @@ class BaseModel(object):
         with tf.name_scope('inputs'):
             self.user_behavior_length_ph = tf.placeholder(tf.int32, [None, ], name='user_behavior_length_ph')
             self.target_user_ph = tf.placeholder(tf.int32, [None, user_fnum], name='target_user_ph')
-            self.item_spar_ph = tf.placeholder(tf.int32, [None, itm_spar_fnum], name='item_spar_ph')
+            #self.item_spar_ph = tf.placeholder(tf.int32, [None, itm_spar_fnum], name='item_spar_ph')
             self.item_dens_ph = tf.placeholder(tf.float32, [None, itm_dens_fnum], name='item_dens_ph')
             self.label_ph = tf.placeholder(tf.int32, [None, ], name='label_ph')
 
@@ -28,24 +28,24 @@ class BaseModel(object):
             # keep prob
             self.keep_prob = tf.placeholder(tf.float32, [])
             self.emb_dim = eb_dim
-            self.itm_spar_fnum = itm_spar_fnum
+            #self.itm_spar_fnum = itm_spar_fnum
             self.itm_dens_fnum = itm_dens_fnum
             self.user_fnum = user_fnum
             # self.num_user = num_user
-            self.num_item = num_item
+            #self.num_item = num_item
             # self.ft_len = itm_spar_fnum * eb_dim + itm_dens_fnum
-            self.ft_len = itm_spar_fnum * eb_dim
+            #self.ft_len = itm_spar_fnum * eb_dim
 
 
         # embedding
         with tf.name_scope('embedding'):
             self.emb_mtx = tf.get_variable('emb_mtx', [feature_size, eb_dim],
                                            initializer=tf.truncated_normal_initializer)
-            self.target_item = tf.nn.embedding_lookup(self.emb_mtx, self.item_spar_ph)
+            self.target_item = tf.nn.embedding_lookup(self.emb_mtx, self.item_dens_ph)
             # self.user_seq = tf.nn.embedding_lookup(self.emb_mtx, self.user_spar_ph)
 
-            self.target_item = tf.reshape(self.target_item, [-1, itm_spar_fnum * eb_dim])
-            self.target_item = tf.concat([self.target_item, self.item_dens_ph], axis=-1)
+            self.target_item = tf.reshape(self.target_item, [-1, itm_dens_fnum * eb_dim])
+            #self.target_item = tf.concat([self.target_item, self.item_dens_ph], axis=-1)
 
     def build_fc_net(self, inp):
         bn1 = tf.layers.batch_normalization(inputs=inp, name='bn1')
@@ -126,7 +126,8 @@ class BaseModel(object):
 
 class DNN(BaseModel):
     def __init__(self, eb_dim, feature_size, itm_spar_fnum, itm_dens_fnum, user_fnum, num_item):
-        super(DNN, self).__init__(eb_dim, feature_size, itm_spar_fnum, itm_dens_fnum, user_fnum, num_item)
+    #def __init__(self, eb_dim, feature_size=1, itm_dens_fnum, user_fnum=1):
+        super(DNN, self).__init__(eb_dim, feature_size, itm_dens_fnum, user_fnum)
 
         # inp = tf.concat([tf.reshape(self.user_seq, [-1, (itm_spar_fnum * eb_dim + itm_dens_fnum) * max_time_len]), self.target_item], axis=1)
         inp = self.target_item
@@ -285,17 +286,17 @@ class LambdaMART:
         """
         # self.test_data = test_dataset
         predicted_scores = np.zeros(self.training_data.shape[0])
-        print("Initial length: ", self.training_data[0][0])
-        print("Initial length: ", self.training_data[0][1])
-        print("Initial length: ", self.training_data[0][2])
-        print("Initial length: ", len(self.training_data[0][2:]))
+        #print("Initial length: ", self.training_data[0][0])
+        #print("Initial length: ", self.training_data[0][1])
+        #print("Initial length: ", self.training_data[0][2])
+        #print("Initial length: ", len(self.training_data[0][2:]))
         query_indexes = group_queries(self.training_data, 1)
         # test_query_indexes = group_queries(self.test_data, 1)
         query_keys = list(query_indexes.keys())
         # test_query_key = list(test_query_indexes.keys())
         true_scores = [self.training_data[query_indexes[query], 0] for query in query_keys]
         #print("predicted scores scores: ", predicted_scores[:20])
-        print("True scores: ", true_scores[:20])
+        #print("True scores: ", true_scores[:20])
         #sys.exit(0)
         # exam = [train_exam[query_indexes[query]] for query in query_keys]
 
@@ -353,23 +354,25 @@ class LambdaMART:
         """
         data = np.array(test_dataset)
         query_indexes = group_queries(data, 1)
-        pds = 0
         #print("@@@@@@@@@@")
         #print("Query indexes are here: ",query_indexes)
         predicted_scores = np.zeros(len(data))
         for query in query_indexes:
-            pds += 1
             results = np.zeros(len(query_indexes[query]))
             for tree in self.trees:
-                print("self.learning_rate: ", self.learning_rate)
-                print("query_indexes[query]: ", query_indexes[query])
+                #print("self.learning_rate: ", self.learning_rate)
+                #print("query_indexes[query]: ", query_indexes[query])
                 results += self.learning_rate * tree.predict(data[query_indexes[query], 2:])
-                print("data[query_indexes[query], 2:]: lenaa ", len(data[query_indexes[query], 2:][0]))
-                print("tree.predict(data[query_indexes[query], 2:]: ", tree.predict(data[query_indexes[query], 2:]))
-                kya = self.learning_rate * tree.predict(data[query_indexes[query], 2:])
-                print("self.learning_rate * tree.predict(data[query_indexes[query], 1:]): ", kya)
-                print("results: ", results)
-                sys.exit(0)
+                #print("Just prediction: ", tree.predict(data[query_indexes[query], 2:]))
+                #print("data[query_indexes[query], 2:]: lenaa ", len(data[query_indexes[query], 2:][0]))
+                #print("tree.predict(data[query_indexes[query], 2:]: ", tree.predict(data[query_indexes[query], 2:]))
+                #kya = self.learning_rate * tree.predict(data[query_indexes[query], 2:])
+                #print("self.learning_rate * tree.predict(data[query_indexes[query], 1:]): ", kya)
+                #print("Here: ", len(data[query_indexes[query], 2:][0]))
+                #print("Here: ", len(data[query_indexes[query]][0]))
+                #print("Here: ", tree.predict(data[query_indexes[query], 2:]))
+                #print("results: ", results)
+                #sys.exit(0)
             #if pds < 20:
             #    print(query, query_indexes[query], results)
             predicted_scores[query_indexes[query]] = results

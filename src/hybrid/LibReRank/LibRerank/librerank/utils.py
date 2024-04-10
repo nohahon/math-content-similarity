@@ -1,3 +1,4 @@
+import pickle
 import sys
 import numpy as np
 import pickle as pkl
@@ -7,7 +8,8 @@ import random
 import argparse
 import datetime
 import json
-
+sys.path.append('/beegfs/schubotz/ankit/code/mabowdor')
+import mabowdorScores
 
 def normalize(v):
     v = np.array(v)
@@ -38,6 +40,7 @@ def repeat_data(data, rep_num):
         new_shape[0] = -1
         data[i] = np.reshape(np.tile(data_i, tile_shape), new_shape).tolist()
     return data
+
 
 def load_parse_from_json(parse, setting_path):
     with open(setting_path, 'r') as f:
@@ -75,6 +78,7 @@ def load_file(save_file):
     for line in data:
         records.append([eval(v) for v in line.split('\t')])
     return records
+
 
 def construct_ranker_data(data):
     target_user, target_item_dens, target_item_spar, profiles, label, list_len = [], [], [], [], [], []
@@ -122,6 +126,12 @@ def construct_behavior_data(data, max_len):
 
     return target_user, target_item_spar, target_item_dens, user_behavior_spar, user_behavior_dens, label, seq_len, list_len, tiled_seq_len
 
+def find_index(input_list, element):
+    for i, item in enumerate(input_list):
+        if item == element:
+            return i
+    return len(input_list) + 1
+
 
 def rank(data, preds, out_file):
 
@@ -146,12 +156,16 @@ def rank(data, preds, out_file):
         #aggregat.append([eachEle, preds[count_], 0.0])
         count_ += 1
         labels.append(0.0)
-
+    
     aggregat_sort = dict()
     for eachA in aggregat.keys():
         aggregat_sort[eachA] = sorted(aggregat[eachA], key=lambda x: x[1], reverse=True)
 
+    with open("lambdaMART_pred.pkl", 'wb') as f:
+        pickle.dump(aggregat_sort, f)
+
     #print("aggregated sample sorted: ", aggregat_sort)
+    sys.exit(0)
     print("Lenght of test labels and enght of predicted scores: ", len(labels), len(preds))
 
     with open(out_file, 'wb') as f:
@@ -185,15 +199,83 @@ def rank(data, preds, out_file):
     #with open(out_file, 'wb') as f:
     #    pickle.dump([out_user, profiles, out_itm_spar, out_itm_dens, out_label, out_pos, list_lens], f)
 
+
 def get_last_click_pos(my_list):
     if sum(my_list) == 0 or sum(my_list) == len(my_list):
         return len(my_list) - 1
     return max([index for index, el in enumerate(my_list) if el])
 
+def getdataData(file_h):
+    """
+    get Training data in the format as needed
+    """
+    with open(file_h, "rb") as traind:
+        dataT = pickle.load(traind)
+    user,  profile, itm_spar, itm_dens, label, pos, list_len = [],[],[],[],[],[],[]
+    prof_dum = [[815887, 815888, 815889, 815890, 815891, 815892, 815893, 815894]] #taking dummy as no use
+    seedrc_idl = defaultdict(lambda:list())
+    seedrc_rndm = defaultdict(lambda:list())
+    # converting seed to idl rec and rand rec mappings
+    for eachPos in dataT[0]:
+        seedrc_idl[eachPos[0]].append(eachPos[1])
+    for eachNeg in dataT[1]:
+        seedrc_rndm[eachNeg[0]].append(eachNeg[1])
+    # creating spar feat 
+    for eachSeed in seedrc_idl.keys():
+        pos_ = 0
+        loc_pos = list()
+        loc_lst_pos = list() #for saving pos pairs
+        loc_itm_den = list()
+        loc_label = list()
+        for eachIdlrec in seedrc_idl[eachSeed]:
+            loc_lst_pos.append([eachSeed,eachIdlrec])  #same local spar item
+            loc_itm_den.append([(int(eachSeed)+int(eachIdlrec))/2])
+            loc_label.append(1.0)
+            pos_ += 1
+            loc_pos.append(pos_)
+        loc_lst_neg = list() #for saving negative pairs
+        for eachRndrec in seedrc_rndm[eachSeed][:len(loc_lst_pos)]:
+            loc_lst_neg.append([eachSeed,eachRndrec])
+            loc_itm_den.append([(int(eachSeed)+int(eachRndrec))/2])
+            loc_label.append(0.0)
+            pos_ += 1
+            loc_pos.append(pos_)
+        for eachRndrec in seedrc_rndm[eachSeed][len(loc_lst_pos):2*len(loc_lst_pos)]:
+            loc_lst_neg.append([eachSeed,eachRndrec])
+            loc_itm_den.append([(int(eachSeed)+int(eachRndrec))/2])
+            loc_label.append(0.0)
+            pos_ += 1
+            loc_pos.append(pos_)
+        mainsparlst = [loc_lst_pos+loc_lst_neg]
+        itm_spar.append(mainsparlst)
+        itm_dens.append(loc_itm_den)
+        label.append(loc_label)
+        pos.append(loc_pos)
+        list_len.append(len(mainsparlst))
+        profile.append(prof_dum)
+        user.append(1.0)
+    #print("Ilu ilu: ",  user[0], profile[0], itm_spar[0], itm_dens[0], label[0], pos[0], list_len[0])
+    return user, profile, itm_spar, itm_dens, label, pos, list_len
+
+def getzbTrainData(trainFilename="./Data/zbmath/test_posandnegPairs.pkl"):
+    # Get train data
+    user, profile, itm_spar, itm_dens, label, pos, list_len = getdataData(trainFilename)
+    return user, profile, itm_spar, itm_dens, label, pos, list_len
+
+def getzbTestData(testFilename="./Data/zbmath/test_posandnegPairs.pkl"):
+    """
+    The generated rankings will be needed in test not train
+    """
+    #with open("lambdaMART_pred.pkl"
+    user, profile, itm_spar, itm_dens, label, pos, list_len = getdataData(testFilename)
+    return user, profile, itm_spar, itm_dens, label, pos, list_len
 
 def construct_list(data_dir, max_time_len):
-    user, profile, itm_spar, itm_dens, label, pos, list_len = pickle.load(open(data_dir, 'rb'))
-    print(len(user), len(itm_spar))
+    if data_dir == "lambdaMART.rankings.train":
+        user, profile, itm_spar, itm_dens, label, pos, list_len = getzbTrainData()
+    else:
+        user, profile, itm_spar, itm_dens, label, pos, list_len = getzbTestData()
+    print("Data iteration: ", len(user), len(itm_spar))
     cut_itm_dens, cut_itm_spar, cut_label, cut_pos, cut_usr_spar, cut_usr_dens, de_label, cut_hist_pos = [], [], [], [], [], [], [], []
     for i, itm_spar_i, itm_dens_i, label_i, pos_i, list_len_i in zip(list(range(len(label))),
                                                     itm_spar, itm_dens, label, pos, list_len):
@@ -228,6 +310,7 @@ def construct_list_with_profile(data_dir, max_time_len, max_seq_len, props, prof
         de_lb = []
         for j in range(len(label_i)):
             de_lb.append(label_i[j] / props[itm_spar_i[j][1]][pos_i[j]])
+
         if len(itm_spar_i) >= max_time_len:
             cut_itm_spar.append(itm_spar_i[: max_time_len])
             cut_itm_dens.append(itm_dens_i[: max_time_len])
@@ -269,7 +352,7 @@ def construct_list_with_profile(data_dir, max_time_len, max_seq_len, props, prof
 
     print(max_interval, min_interval)
 
-        return user_prof, cut_itm_spar, cut_itm_dens, cut_usr_spar, cut_usr_dens, cut_label, cut_hist_pos, list_len, seq_len, cut_pos, de_label
+    return user_prof, cut_itm_spar, cut_itm_dens, cut_usr_spar, cut_usr_dens, cut_label, cut_hist_pos, list_len, seq_len, cut_pos, de_label
 
 
 def get_sim_hist(profile_group, usr_profile):
@@ -349,6 +432,7 @@ def construct_list_with_profile_sim_hist(data_dir, max_time_len, max_seq_len, pr
 
     return user_prof, cut_itm_spar, cut_itm_dens, cut_usr_spar, cut_usr_dens, cut_label, cut_hist_pos, list_len, seq_len, cut_pos, de_label
 
+
 def rerank(attracts, terms):
     val = np.array(attracts) * np.array(np.ones_like(terms))
     return sorted(range(len(val)), key=lambda k: val[k], reverse=True)
@@ -388,6 +472,8 @@ def evaluate(labels, preds, scope_number, props, cates, poss, is_rank):
         clicks.append(sum(clicks[:scope_number]))
     return np.mean(np.array(map)), np.mean(np.array(ndcg)), np.mean(np.array(clicks)), np.mean(np.array(utility)), \
             [map, ndcg, clicks, utility]
+
+
 
 def evaluate_multi(labels, preds, scope_number, is_rank, _print=False):
     ndcg, map, clicks = [[] for _ in range(len(scope_number))], [[] for _ in range(len(scope_number))], [[] for _ in range(len(scope_number))]

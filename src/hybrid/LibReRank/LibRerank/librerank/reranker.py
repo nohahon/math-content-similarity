@@ -329,10 +329,8 @@ class miDNN(BaseModel):
 
 
 class PRM(BaseModel):
-    def __init__(self, feature_size, eb_dim, hidden_size, max_time_len, itm_spar_num, itm_dens_num,
-                 profile_num, max_norm=None, d_model=64, d_inner_hid=128, n_head=1):
-        super(PRM, self).__init__(feature_size, eb_dim, hidden_size, max_time_len,
-                                 itm_spar_num, itm_dens_num, profile_num, max_norm)
+    def __init__(self, eb_dim, hidden_size, max_time_len, max_norm=None, d_model=64, d_inner_hid=128, n_head=1):
+        super(PRM, self).__init__(eb_dim, hidden_size, max_time_len,max_norm)
 
         with self.graph.as_default():
             pos_dim = self.item_seq.get_shape().as_list()[-1]
