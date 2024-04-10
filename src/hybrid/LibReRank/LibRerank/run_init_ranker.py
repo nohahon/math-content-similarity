@@ -156,9 +156,9 @@ def getFeatuResRe(seed_):
     """
     lod all top 1k recommendations and retrun seeds
     """
-    locati_ = "/beegfs/schubotz/ankit/code/evaluation/hybridApproach/scores/top1krec/"
+    locati_ = "/beegfs/schubotz/ankit/code/evaluation/hybridApproach/scores/top1krec/onlyPotRec/"
     abstr = pickle.load(open(locati_+"abstract.pkl", 'rb'))
-    citn = pickle.load(open(locati_+"citation.pkl", 'rb'))
+    citn = pickle.load(open(locati_+"cits_withstdvl.pkl", 'rb'))
     keywrd = pickle.load(open(locati_+"kywrd_withstdvl.pkl", 'rb'))
     math = pickle.load(open(locati_+"math_withstdvl.pkl", 'rb'))
     msc = pickle.load(open(locati_+"msc_withstdvl.pkl", 'rb'))
@@ -214,7 +214,7 @@ def get_data_test(dataset, embed_dir, exclude_Ids):
     return records, labels
 
 def get_data_r(dataset, embed_dir):
-    # getting re-ranker training data
+    # getting re-ranker training data and testing data
     possamp, negsamp = pkl.load(open(dataset, 'rb'))
     records = []
     labels = []
@@ -235,7 +235,7 @@ def get_data_r(dataset, embed_dir):
                     records.append([0.0, 1.0, eachEle[1],id_])
                     labels.append(0.0)
                     seedrecPrs.append([eachSeed,eachEle[0]])
-    with open("testData_rerank.pkl", "wb") as wpf:
+    with open("data_rerank_potRec_onl_sklearn.pkl", "wb") as wpf:
         pickle.dump(seedrecPrs, wpf)
     return records, labels
 
@@ -278,13 +278,12 @@ def train_mart(train_file, val_file, test_file, embed_dir, processed_dir,
     print("Training done...............")
     print('test set')
     test_data, labels = get_data_r(test_file, embed_dir)
-    sys.exit(0)
     #print("Test data and labels 1: ", test_data[0], labels[0])
     test_pred = model.predict(test_data)
     print("Testing done...............")
 
     #save predictedlables
-    with open('pred_rerank_all_lgb_lambdMART.pkl', 'wb') as f_:
+    with open('pred_rerank_PotRec_lgb_lambdMART_sklearn.pkl', 'wb') as f_:
         pkl.dump(test_pred, f_)
     sys.exit(0)
     rank(test_file, test_pred, processed_dir + parse.model_type +'.rankings.test')

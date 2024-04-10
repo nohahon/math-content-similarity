@@ -38,7 +38,7 @@ def eval(model, data, l2_reg, batch_size, isrank, metric_scope, _print=False):
     return loss, res
 
 
-def train(train_file, test_file,max_time_len, params):
+def train(train_file, test_file, feature_size, max_time_len, itm_spar_fnum, itm_dens_fnum, profile_num, params):
     tf.reset_default_graph()
 
     # gpu settings
@@ -46,7 +46,8 @@ def train(train_file, test_file,max_time_len, params):
 
     perlist = False
     if params.model_type == 'PRM':
-        model = PRM(params.eb_dim, params.hidden_size, max_time_len, max_norm=params.max_norm)
+        model = PRM(feature_size, params.eb_dim, params.hidden_size, max_time_len, itm_spar_fnum, itm_dens_fnum,
+                    profile_num, max_norm=params.max_norm)
     elif params.model_type == 'SetRank':
         model = SetRank(feature_size, params.eb_dim, params.hidden_size, max_time_len, itm_spar_fnum, itm_dens_fnum,
                     profile_num, max_norm=params.max_norm)
@@ -301,6 +302,9 @@ if __name__ == '__main__':
     # profile = pkl.load(open(os.path.join(processed_dir, 'user.profile'), 'rb'))
     itm_spar_fnum = 796 
     itm_dens_fnum = 796
+    num_ft = 20
+    profile_fnum = 8
+    
     # construct training files
     train_dir = os.path.join(processed_dir, initial_ranker + '.rankings.train')
     print("Train data directory: ", train_dir)
@@ -318,7 +322,7 @@ if __name__ == '__main__':
         test_lists = construct_list(os.path.join(processed_dir, initial_ranker + '.rankings.test'), max_time_len)
         pkl.dump(test_lists, open(test_dir, 'wb'))
     print("Train and tst files are created...")
-    train(train_lists,max_time_len,itm_spar_fnum,itm_dens_fnum,test_lists, parse)
+    train(train_lists, test_lists, num_ft, max_time_len, itm_spar_fnum, itm_dens_fnum, profile_fnum, parse)
 
 
 
