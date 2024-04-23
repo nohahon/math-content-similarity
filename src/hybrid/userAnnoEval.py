@@ -101,21 +101,77 @@ def useragreement():
 	allvals_1 = list()
 	for v1 in anno1.values():
 		for v_1 in v1:
-			allvals_1.append(int(v_1))
+			val = int(v_1)
+			if val == 2:
+				val = 1
+			allvals_1.append(val)
 	allvals_2 = list()
 	for v1 in anno2.values():
 		for v_1 in v1:
-			allvals_2.append(int(v_1))
+			val = int(v_1)
+			if val == 2:
+				val = 1
+			allvals_2.append(val)
 	allvals_3 = list()
 	for v1 in anno3.values():
 		for v_1 in v1:
-			allvals_3.append(int(v_1))
+			val = int(v_1)
+			if val == 2:
+				val = 1
+			allvals_3.append(val)
 
 	kappa_12 = cohen_kappa_score(allvals_1, allvals_2)
+	print('Kappa %s-%s: %f' % ('Tomas', 'Andre', kappa_12))
 	kappa_13 = cohen_kappa_score(allvals_1, allvals_3)
+	print('Kappa %s-%s: %f' % ('Tomas', 'Noah', kappa_13))
 	kappa_23 = cohen_kappa_score(allvals_2, allvals_3)
+	print('Kappa %s-%s: %f' % ('Andre', 'Noah', kappa_23))
 
 	print((kappa_12 + kappa_13 + kappa_23)/3)
 
-useragreement()
-calculateEValScores()
+def fleiss():
+	annos = list()
+	annos.append(getSeedVal("originalAnno/annotation_tomas.csv"))
+	annos.append(getSeedVal("originalAnno/annotation_andre.csv"))
+	annos.append(getSeedVal("originalAnno/annotation_noah.csv"))
+	
+	N = len(annos[0])*10 # number of seed/rec combinations, ie total number of annotated pairs
+	n = 3 # number of annotators
+	k = 3 # number of scores (here 0, 1, 2)
+
+	matrix = list()
+	pairid = 0
+	for seedID in annos[0]:
+		if not seedID: continue
+
+		for recID in range(len(annos[0][seedID])):
+			matrix.append(list())
+			for score in range(k):
+				counter = 0
+				for annotator in annos:
+					if score == int(annotator[seedID][recID]):
+						counter = counter+1
+				matrix[pairid].append(counter)
+			pairid = pairid + 1
+
+	PA = sum([sum([nij * (nij-1) for nij in row]) / (n*(n-1)) for row in matrix]) / N
+	print("PA =", PA)
+
+	PE = sum( [p**2 for p in [sum([ row[col] for row in matrix ])/(N*n) for col in range(k)]] )
+	print("PE =", PE)
+
+	kappa = -float("inf")
+	try:
+		kappa = (PA - PE) / (1 - PE)
+		kappa = float("{:.4f}".format(kappa))
+	except ZeroDivisionError:
+		print("Expected agreement = 1")
+
+	print("Fleiss' Kappa =", kappa)
+
+	return matrix
+
+fleiss()
+
+# useragreement()
+# calculateEValScores()
