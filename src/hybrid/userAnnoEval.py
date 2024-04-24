@@ -122,7 +122,7 @@ def useragreement(binary_mode=False):
 			kappa = cohen_kappa_score(matrix[i], matrix[j])
 			print( '{}: {:7.4f}'.format( "Cohen's Kappa {:s}-{:s}".format(anno, annoNames[j]).ljust(27), kappa ) )
 
-def fleiss():
+def fleiss(binary_mode=False):
 	annos = list()
 	foldername = 'originalAnno'
 
@@ -134,7 +134,7 @@ def fleiss():
 
 	N = len(annos[0])*10 # number of seed/rec combinations, ie total number of annotated pairs
 	n = len(annos) # number of annotators
-	k = 3 # number of scores (here 0, 1, 2)
+	k = 3 - binary_mode # number of scores (here 0, 1, 2)
 
 	matrix = list()
 	pairid = 0
@@ -146,8 +146,14 @@ def fleiss():
 			for score in range(k):
 				counter = 0
 				for annotator in annos:
-					if score == int(annotator[seedID][recID]):
-						counter = counter+1
+					if binary_mode:
+						if 0 < score and score <= int(annotator[seedID][recID]):
+							counter = counter+1
+						elif 0 == score and score == int(annotator[seedID][recID]):
+							counter = counter+1
+					else:
+						if score == int(annotator[seedID][recID]):
+							counter = counter+1
 				matrix[pairid].append(counter)
 			pairid = pairid + 1
 
@@ -177,4 +183,7 @@ useragreement(True)
 
 print("\nCalcuate fleiss' kappa")
 fleiss()
+
+print("\nCalcuate fleiss' kappa with binary annotations:")
+fleiss(True)
 # calculateEValScores()
