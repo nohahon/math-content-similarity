@@ -95,8 +95,8 @@ def calculateEValScores():
 	print("MRR and nDCG is: ", getMRR(filename), calc_ndcg(filename))
 
 def useragreement():
-	anno1 = getSeedVal("originalAnno/annotation_tomas.csv")
-	anno2 = getSeedVal("originalAnno/annotation_andre.csv")
+	anno1 = getSeedVal("originalAnno/annotation_shoheb.csv")
+	anno2 = getSeedVal("originalAnno/annotation_tomas.csv")
 	anno3 = getSeedVal("originalAnno/annotation_noah.csv")
 	allvals_1 = list()
 	for v1 in anno1.values():
@@ -134,9 +134,10 @@ def fleiss():
 	annos.append(getSeedVal("originalAnno/annotation_tomas.csv"))
 	annos.append(getSeedVal("originalAnno/annotation_andre.csv"))
 	annos.append(getSeedVal("originalAnno/annotation_noah.csv"))
-	
+	annos.append(getSeedVal("originalAnno/annotation_shoheb.csv"))
+
 	N = len(annos[0])*10 # number of seed/rec combinations, ie total number of annotated pairs
-	n = 3 # number of annotators
+	n = len(annos) # number of annotators
 	k = 3 # number of scores (here 0, 1, 2)
 
 	matrix = list()
@@ -173,5 +174,5 @@ def fleiss():
 
 fleiss()
 
-# useragreement()
+useragreement()
 # calculateEValScores()
