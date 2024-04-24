@@ -12,7 +12,6 @@
 .vscode/*
 *.env
 *.pth
-*.csv
 /wandb/*
 /artifacts/*
 # IPython
