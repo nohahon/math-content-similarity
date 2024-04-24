@@ -2,6 +2,8 @@ import sys
 import math
 import csv
 import numpy as np
+import os
+import re
 from collections import defaultdict
 from sklearn.metrics import cohen_kappa_score
 
@@ -94,47 +96,41 @@ def calculateEValScores():
 			calculateRecall(filename,i), getF1(calculatePrec(filename,i), calculateRecall(filename,i)))
 	print("MRR and nDCG is: ", getMRR(filename), calc_ndcg(filename))
 
-def useragreement():
-	anno1 = getSeedVal("originalAnno/annotation_shoheb.csv")
-	anno2 = getSeedVal("originalAnno/annotation_tomas.csv")
-	anno3 = getSeedVal("originalAnno/annotation_noah.csv")
-	allvals_1 = list()
-	for v1 in anno1.values():
-		for v_1 in v1:
-			val = int(v_1)
-			if val == 2:
-				val = 1
-			allvals_1.append(val)
-	allvals_2 = list()
-	for v1 in anno2.values():
-		for v_1 in v1:
-			val = int(v_1)
-			if val == 2:
-				val = 1
-			allvals_2.append(val)
-	allvals_3 = list()
-	for v1 in anno3.values():
-		for v_1 in v1:
-			val = int(v_1)
-			if val == 2:
-				val = 1
-			allvals_3.append(val)
+def useragreement(binary_mode=False):
+	annos = list()
+	annoNames = list()
+	foldername = 'originalAnno'
+	for file in os.listdir(foldername):
+		filepath = os.path.join(foldername, file)
+		if filepath.endswith('.CSV') or filepath.endswith('.csv'):
+			annos.append( getSeedVal(filepath) )
+			annoNames.append( re.match(".*_(.*?)\\..*", file).group(1) )
+			# print("Cohen's kappa loaded " + filepath) # helps debugging
 
-	kappa_12 = cohen_kappa_score(allvals_1, allvals_2)
-	print('Kappa %s-%s: %f' % ('Tomas', 'Andre', kappa_12))
-	kappa_13 = cohen_kappa_score(allvals_1, allvals_3)
-	print('Kappa %s-%s: %f' % ('Tomas', 'Noah', kappa_13))
-	kappa_23 = cohen_kappa_score(allvals_2, allvals_3)
-	print('Kappa %s-%s: %f' % ('Andre', 'Noah', kappa_23))
+	matrix = list()
+	for annotator in annos:
+		annomap = list()
+		for seedID in annotator.values():
+			for score in seedID:
+				if binary_mode and 0 < int(score):
+					score = 1
+				annomap.append(int(score))
+		matrix.append(annomap)
 
-	print((kappa_12 + kappa_13 + kappa_23)/3)
+	for i, anno in enumerate(annoNames):
+		for j in range(i):
+			kappa = cohen_kappa_score(matrix[i], matrix[j])
+			print( '{}: {:7.4f}'.format( "Cohen's Kappa {:s}-{:s}".format(anno, annoNames[j]).ljust(27), kappa ) )
 
 def fleiss():
 	annos = list()
-	annos.append(getSeedVal("originalAnno/annotation_tomas.csv"))
-	annos.append(getSeedVal("originalAnno/annotation_andre.csv"))
-	annos.append(getSeedVal("originalAnno/annotation_noah.csv"))
-	annos.append(getSeedVal("originalAnno/annotation_shoheb.csv"))
+	foldername = 'originalAnno'
+
+	for file in os.listdir(foldername):
+		filepath = os.path.join(foldername, file)
+		if filepath.endswith('.CSV') or filepath.endswith('.csv'):
+			annos.append( getSeedVal(filepath) )
+			print("Fleiss' kappa loaded " + filepath)
 
 	N = len(annos[0])*10 # number of seed/rec combinations, ie total number of annotated pairs
 	n = len(annos) # number of annotators
@@ -172,7 +168,13 @@ def fleiss():
 
 	return matrix
 
-fleiss()
 
+print("Calculate pair-wise cohen's kappa:")
 useragreement()
+
+print("\nCalculate pair-wise cohen's kappa with binary annotations:")
+useragreement(True)
+
+print("\nCalcuate fleiss' kappa")
+fleiss()
 # calculateEValScores()
