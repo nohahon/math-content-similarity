@@ -5,14 +5,14 @@ import jsonlines
 from collections import defaultdict
 from sklearn.preprocessing import StandardScaler
 from sklearn.neural_network import MLPClassifier
-sys.path.append('/beegfs/schubotz/ankit/code/mabowdor')
+sys.path.append('code/mabowdor')
 import mabowdorScores
 
 def getFeatuResRe(seed_):
     """
     lod all top 1k recommendations and retrun seeds
     """
-    locati_ = "/beegfs/schubotz/ankit/code/evaluation/hybridApproach/scores/top1krec/onlyPotRec/"
+    locati_ = "code/evaluation/hybridApproach/scores/top1krec/onlyPotRec/"
     abstr = pickle.load(open(locati_+"abstract.pkl", 'rb'))
     citn = pickle.load(open(locati_+"cits_withstdvl.pkl", 'rb'))
     keywrd = pickle.load(open(locati_+"kywrd_withstdvl.pkl", 'rb'))
@@ -48,13 +48,13 @@ def get_data_r(dataset):
     return records
 
 def mpnn():
-    dataset_train = "/beegfs/schubotz/ankit/code/evaluation/hybridApproach/re-ranker/LibRerank/Data/zbmath/train_posandnegPairs.pkl"
+    dataset_train = "code/evaluation/hybridApproach/re-ranker/LibRerank/Data/zbmath/train_posandnegPairs.pkl"
     list_of_list_samps = get_data_r(dataset_train)
     training_data = np.array(list_of_list_samps)
     X_train = training_data[:, :-1]  # features: similarity score and feature ID
     y_train = training_data[:, -1]   # labels
     
-    dataset_test = "/beegfs/schubotz/ankit/code/evaluation/hybridApproach/re-ranker/LibRerank/Data/zbmath/test_posandnegPairs.pkl"
+    dataset_test = "code/evaluation/hybridApproach/re-ranker/LibRerank/Data/zbmath/test_posandnegPairs.pkl"
     list_of_testsampe = get_data_r(dataset_test)
     test_data = np.array(list_of_testsampe)
     test_data = test_data[:,:-1]

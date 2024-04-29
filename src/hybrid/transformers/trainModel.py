@@ -21,7 +21,7 @@ def compute_metrics(eval_pred):
 
 def getdataset():
     accuracy = evaluate.load("accuracy")
-    zbm_d = load_dataset("AnkitSatpute/zbm_top1000_ttv_textformat")
+    zbm_d = load_dataset("zbm_top1000_ttv_textformat")
     tokenized_zbm_d = zbm_d.map(preprocess_function, batched=True)
     print(len(tokenized_zbm_d["train"]))
     data_collator = DataCollatorWithPadding(tokenizer=tokenizer)
@@ -58,7 +58,7 @@ def getdataset():
 def testTrainedModel():
     dictOfrslts = defaultdict(lambda:list())
     testdata_ids = pickle.load(open("BERT_rerankdata_textformat.pkl", 'rb'))
-    dataset_test = load_dataset("AnkitSatpute/zbm_top1000_ttv_textformat")["test"]
+    dataset_test = load_dataset("/zbm_top1000_ttv_textformat")["test"]
     print(len(testdata_ids), len(dataset_test))
     classifier = pipeline(task="text-classification", model="trainedmodels/BERT_rerank_withtextip/checkpoint-8534")
     for id_,eachSamp in enumerate(dataset_test):

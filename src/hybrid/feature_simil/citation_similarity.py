@@ -21,7 +21,7 @@ INSTRUCTIONS = {
 def getidealrecommendations():
     listDocs = dict()
     with open(
-        "/beegfs/schubotz/ankit/data/recommendationPairs.csv",
+        "data/recommendationPairs.csv",
         mode="r",
     ) as csvfile:
         csvFile = csv.reader(csvfile)
@@ -35,7 +35,7 @@ def getSEEDIds():
     """get seed IDS in a list"""
     listDocs = list()
     with open(
-        "/beegfs/schubotz/ankit/data/recommendationPairs.csv",
+        "data/recommendationPairs.csv",
         mode="r",
     ) as csvfile:
         csvFile = csv.reader(csvfile)
@@ -47,7 +47,7 @@ def getSEEDIds():
 
 def getDocandRefstyle():
     dictRef = dict()
-    filename = "/beegfs/schubotz/ankit/data/references_withIDs.csv"
+    filename = "data/references_withIDs.csv"
     with open(filename, "r", encoding="utf-8", errors="ignore") as csvfile:
         csvreader = csv.reader(csvfile)
         first_row = next(csvreader)  # Read the first row
@@ -59,7 +59,7 @@ def getDocandRefstyle():
 def getDocID_to_zbl():
     dictRef = dict()
     with open(
-        "/beegfs/schubotz/ankit/data/zbMATH_id_to_ZBL.csv",
+        "data/zbMATH_id_to_ZBL.csv",
         mode="r",
     ) as csvfile:
         csvFile = csv.reader(csvfile)
@@ -72,8 +72,8 @@ def getDocID_to_zbl():
 
 def getAllReferences():
     """Combine refrences in ZBL and and normal format"""
-    file_zblcit = "/beegfs/schubotz/ankit/data/math_citation.csv"
-    file_ref = "/beegfs/schubotz/ankit/data/references_withIDs.csv"
+    file_zblcit = "data/math_citation.csv"
+    file_ref = "data/references_withIDs.csv"
     idToZBLcit_o = dict()
     with open(file_zblcit, "r", encoding="utf-8", errors="ignore") as csvfile:
         csvreader = csv.reader(csvfile)
@@ -325,8 +325,8 @@ def createResults():
 
 
 def getTrueSeedsHavCit():
-    file_zblcit = "/beegfs/schubotz/ankit/data/math_citation.csv"
-    file_ref = "/beegfs/schubotz/ankit/data/references_withIDs.csv"
+    file_zblcit = "data/math_citation.csv"
+    file_ref = "data/references_withIDs.csv"
 
     idToRefrences_o = defaultdict(lambda: list())
     with open(file_ref, "r", encoding="utf-8", errors="ignore") as csvfile:

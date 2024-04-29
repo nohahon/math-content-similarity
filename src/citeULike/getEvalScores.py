@@ -27,7 +27,7 @@ def createDocIdAbPairs(filename):
 
 def genEmbeddingsBatch():
     alldocs = createDocIdAbPairs(
-        "/beegfs/schubotz/ankit/data/citeULike/citeulike-a/raw-data.csv",
+        "citeulike-a/raw-data.csv",
     )
     instruction = INSTRUCTIONS["qa"]
     tokenizer = AutoTokenizer.from_pretrained("BAAI/llm-embedder")
@@ -57,7 +57,7 @@ def genEmbeddingsBatch():
 
 def calculateSimilarity(dir_storeddata):
     alldocs = createDocIdAbPairs(
-        "/beegfs/schubotz/ankit/data/citeULike/citeulike-a/raw-data.csv",
+        "citeulike-a/raw-data.csv",
     )
     os.listdir(dir_storeddata)
     recordScores = defaultdict(lambda: list())
@@ -105,7 +105,7 @@ def getUserPairs(filename):
         seed_and_rcmnds[sd] = rcmnds
     instruction = INSTRUCTIONS["qa"]
     alldocs = createDocIdAbPairs(
-        "/beegfs/schubotz/ankit/data/citeULike/citeulike-a/raw-data.csv",
+        "citeulike-a/raw-data.csv",
     )
     tokenizer = AutoTokenizer.from_pretrained("BAAI/llm-embedder")
     model = AutoModel.from_pretrained("BAAI/llm-embedder")
@@ -159,7 +159,7 @@ def getUserPairs(filename):
 
 def getTopScores():
     seedandrsmnds = getUserPairs(
-        "/beegfs/schubotz/ankit/data/citeULike/citeulike-a/users.dat",
+        "citeulike-a/users.dat",
     )
     with open("citeUlik_title.pkl", "rb") as f:
         scores = pickle.load(f)

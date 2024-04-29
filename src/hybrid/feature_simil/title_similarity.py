@@ -18,7 +18,7 @@ INSTRUCTIONS = {
 def getidealrecommendations():
     listDocs = list()
     with open(
-        "/beegfs/schubotz/ankit/data/recommendationPairs.csv",
+        "data/recommendationPairs.csv",
         mode="r",
     ) as csvfile:
         csvFile = csv.reader(csvfile)
@@ -34,7 +34,7 @@ def getSEEDIds():
     """
     listDocs = list()
     with open(
-        "/beegfs/schubotz/ankit/data/recommendationPairs.csv",
+        "data/recommendationPairs.csv",
         mode="r",
     ) as csvfile:
         csvFile = csv.reader(csvfile)
@@ -45,7 +45,7 @@ def getSEEDIds():
 
 
 def getIDs41():
-    filename = "/beegfs/schubotz/noah/arxMLiv/zbmath_abstracts.csv"
+    filename = "arxMLiv/zbmath_abstracts.csv"
     dataWhole = list()
     with open(filename, "r", encoding="utf-8", errors="ignore") as csvfile:
         csvreader = csv.reader(csvfile)
@@ -81,7 +81,7 @@ def getAlltitles(filename):
 
 
 def genEmbeddingsBatch():
-    alltitles = getAlltitles("/beegfs/schubotz/ankit/data/zbMATH_titles.csv")
+    alltitles = getAlltitles("data/zbMATH_titles.csv")
     instruction = INSTRUCTIONS["qa"]
     tokenizer = AutoTokenizer.from_pretrained("BAAI/llm-embedder")
     model = AutoModel.from_pretrained("BAAI/llm-embedder")
@@ -128,7 +128,7 @@ def genEmbeddingsBatch():
 
 
 def createDictScores(dir_here):
-    alltitles = getAlltitles("/beegfs/schubotz/ankit/data/zbMATH_titles.csv")
+    alltitles = getAlltitles("data/zbMATH_titles.csv")
     getAllscores = os.listdir(dir_here)
     allSeeds = getSEEDIds()
     # print(getAllscores)
@@ -163,7 +163,7 @@ def createDictScores(dir_here):
 
 
 createDictScores(
-    "/beegfs/schubotz/ankit/code/evaluation/hybridApproach/data_ne/titles",
+    "evaluation/hybridApproach/data_ne/titles",
 )
 # getIDs41()
 # genEmbeddingsBatch()

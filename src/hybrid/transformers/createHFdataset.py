@@ -1,14 +1,14 @@
 import sys
 import pickle
 from datasets import Dataset
-sys.path.append('/beegfs/schubotz/ankit/code/mabowdor')
+sys.path.append('/mabowdor')
 import mabowdorScores
 
 def getFeatuResRe(seed_):
     """
     lod all top 1k recommendations and retrun seeds
     """
-    locati_ = "/beegfs/schubotz/ankit/code/evaluation/hybridApproach/scores/top1krec/onlyPotRec/"
+    locati_ = "evaluation/hybridApproach/scores/top1krec/onlyPotRec/"
     abstr = pickle.load(open(locati_+"abstract.pkl", 'rb'))
     citn = pickle.load(open(locati_+"cits_withstdvl.pkl", 'rb'))
     keywrd = pickle.load(open(locati_+"kywrd_withstdvl.pkl", 'rb'))
@@ -54,22 +54,22 @@ def createTFdata():
     #dataset_train = "/beegfs/schubotz/ankit/code/evaluation/hybridApproach/re-ranker/LibRerank/Data/zbmath/train_posandnegPairs.pkl"
     #list_of_list_samps, labels = get_data_r(dataset_train)
     #maindict = {"text": list_of_list_samps, "label": labels}
-    dataset_test = "/beegfs/schubotz/ankit/code/evaluation/hybridApproach/re-ranker/LibRerank/Data/zbmath/test_posandnegPairs.pkl"
+    dataset_test = "/evaluation/hybridApproach/re-ranker/LibRerank/Data/zbmath/test_posandnegPairs.pkl"
     list_of_test, labels_test = get_data_r(dataset_test)
     maindict_ = {"text": list_of_test, "label": labels_test}
     sys.exit(0)
 
-    dataset_valid = "/beegfs/schubotz/ankit/code/evaluation/hybridApproach/re-ranker/LibRerank/Data/zbmath/valid_posandnegPairs.pkl"
+    dataset_valid = "/evaluation/hybridApproach/re-ranker/LibRerank/Data/zbmath/valid_posandnegPairs.pkl"
     list_of_vlid, labels_vlid = get_data_r(dataset_valid)
     maindict__ = {"text": list_of_vlid, "label": labels_vlid}
     #print(len(maindict))
     #print(len(maindict["train"]["text"]), len(maindict["train"]["label"]))
     #print(len(maindict["test"]["text"]), len(maindict["test"]["label"]))
     ds_ = Dataset.from_dict(maindict)
-    ds_.push_to_hub("AnkitSatpute/zbm_top1000_ttv_textformat", split="train")
+    ds_.push_to_hub("zbm_top1000_ttv_textformat", split="train")
     ds__ = Dataset.from_dict(maindict_)
-    ds__.push_to_hub("AnkitSatpute/zbm_top1000_ttv_textformat", split="test")
+    ds__.push_to_hub("zbm_top1000_ttv_textformat", split="test")
     ds___ = Dataset.from_dict(maindict__)
-    ds___.push_to_hub("AnkitSatpute/zbm_top1000_ttv_textformat", split="validation")
+    ds___.push_to_hub("zbm_top1000_ttv_textformat", split="validation")
 
 createTFdata()

@@ -90,7 +90,7 @@ def calc_ndcg(filename):
 def calculateEValScores():
 	# for Prec and Recall we collapsed 2 to 1 so relevant: 1. irrelevant: 0 (manually in the annotation file)
 	# for MRR & nDCG we kept the original annotations
-	filename = "originalAnno/annotation_tomas.csv"
+	filename = "originalAnno/annotation.csv"
 	for i in [3,5,10]:
 		print("Precision, recall, F1 at ",i, " is: ", calculatePrec(filename,i), 
 			calculateRecall(filename,i), getF1(calculatePrec(filename,i), calculateRecall(filename,i)))

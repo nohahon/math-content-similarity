@@ -1,7 +1,7 @@
 import sys
 import pickle
 import jsonlines
-sys.path.append('/beegfs/schubotz/ankit/code/mabowdor')
+sys.path.append('code/mabowdor')
 import mabowdorScores
 
 def getResultsFile():

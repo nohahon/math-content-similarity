@@ -25,7 +25,7 @@ def getAlltitles(filename):
 
 
 def genEmbeddingsBatch():
-    alltitles = getAlltitles("/beegfs/schubotz/ankit/data/zbMATH_keywords.csv")
+    alltitles = getAlltitles("data/zbMATH_keywords.csv")
     instruction = INSTRUCTIONS["qa"]
     tokenizer = AutoTokenizer.from_pretrained("BAAI/llm-embedder")
     model = AutoModel.from_pretrained("BAAI/llm-embedder")

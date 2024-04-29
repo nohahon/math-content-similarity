@@ -14,7 +14,7 @@ def getSEEDIds():
     """
     listDocs = list()
     with open(
-        "/beegfs/schubotz/ankit/data/recommendationPairs.csv",
+        "data/recommendationPairs.csv",
         mode="r",
     ) as csvfile:
         csvFile = csv.reader(csvfile)
@@ -27,7 +27,7 @@ def getSEEDIds():
 def getidealrecommendations():
     listDocs = list()
     with open(
-        "/beegfs/schubotz/ankit/data/recommendationPairs.csv",
+        "data/recommendationPairs.csv",
         mode="r",
     ) as csvfile:
         csvFile = csv.reader(csvfile)
@@ -83,7 +83,7 @@ def getSimilarKey(seedK, recK):
 
 def getSimilarities():
     allAbstrs = read_and_print_csv_rows(
-        "/beegfs/schubotz/noah/arxMLiv/zbmath_abstracts.csv",
+        "arxMLiv/zbmath_abstracts.csv",
     )
     print(len(allAbstrs))
     alScores = dict()
