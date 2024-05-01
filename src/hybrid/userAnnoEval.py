@@ -87,10 +87,10 @@ def calc_ndcg(filename):
 		ndcg_ += ndcg(idealRec, relrec)
 	return ndcg_/len(seedscores.keys())
 
-def calculateEValScores():
+def calculateEValScores(filename):
 	# for Prec and Recall we collapsed 2 to 1 so relevant: 1. irrelevant: 0 (manually in the annotation file)
 	# for MRR & nDCG we kept the original annotations
-	filename = "originalAnno/annotation.csv"
+	# filename = "originalAnno/annotation.csv"
 	for i in [3,5,10]:
 		print("Precision, recall, F1 at ",i, " is: ", calculatePrec(filename,i), 
 			calculateRecall(filename,i), getF1(calculatePrec(filename,i), calculateRecall(filename,i)))
@@ -186,4 +186,15 @@ fleiss()
 
 print("\nCalcuate fleiss' kappa with binary annotations:")
 fleiss(True)
-# calculateEValScores()
+
+print("Evaluation scores of Expert-1\n")
+calculateEValScores("originalAnno/expert-1.csv")
+
+print("Evaluation scores of Expert-2\n")
+calculateEValScores("originalAnno/expert-2.csv")
+
+print("Evaluation scores of Non-expert-1\n")
+calculateEValScores("originalAnno/non-expert-1.csv")
+
+print("Evaluation scores of Non-expert-2\n")
+calculateEValScores("originalAnno/non-expert-2.csv")
