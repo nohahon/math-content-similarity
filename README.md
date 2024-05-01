@@ -14,6 +14,8 @@ Please run the following to install dependencies for running the scripts to obta
 The documents are obtained via zbMATHOpen API https://api.zbmath.org/v1/
 The ID of documents can be obtained from repo: https://zenodo.org/records/5062959
 
+```python /src/hybrid/feature_simil/getDataset.py```
+
 ## Evaluation results
 
 ### Baselin models (Table 2)
