@@ -7,7 +7,7 @@ This repository contains the resources used for RecSys'2024 submission "Advancin
 
 Please run the following to install dependencies for running the scripts to obtain results (it is recommended to create a virtual environment first).
 
-```pip install -r datasets/requirements.txt```
+```pip install -r requirements.txt```
 
 ### Dataset
 
