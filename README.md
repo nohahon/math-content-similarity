@@ -14,6 +14,8 @@ Please run the following to install dependencies for running the scripts to obta
 The documents are obtained via zbMATHOpen API https://api.zbmath.org/v1/
 The ID of documents can be obtained from repo: https://zenodo.org/records/5062959
 
+To obtain metadata if all documents such as title, abstract, keywords, MSCs, citations, author names, etc please run
+
 ```python /src/hybrid/feature_simil/getDataset.py```
 
 ## Evaluation results
