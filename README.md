@@ -1,6 +1,6 @@
 ## About
 
-This repository contains the resources used for RecSys'2024 submission "Advancing Content-Based Recommender Systems in STEM Fields: A Hybrid Model for Research Articles in Math Libraries"
+This repository contains the resources used for RecSys'2024 submission "Towards Better STEM Recommendations: A Gold-Standard Dataset with Math content"
 
 
 ### Install Dependencies
