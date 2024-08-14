@@ -25,10 +25,12 @@ def getAlltitles(filename):
 
 
 def genEmbeddingsBatch():
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(device)
     alltitles = getAlltitles("/beegfs/schubotz/ankit/data/zbMATH_keywords.csv")
     instruction = INSTRUCTIONS["qa"]
     tokenizer = AutoTokenizer.from_pretrained("BAAI/llm-embedder")
-    model = AutoModel.from_pretrained("BAAI/llm-embedder")
+    model = AutoModel.from_pretrained("BAAI/llm-embedder",device_map=device)
     queries = [
         instruction["query"] + alltitles[query] for query in getSEEDIds()
     ]
@@ -38,6 +40,15 @@ def genEmbeddingsBatch():
         truncation=True,
         return_tensors="pt",
     )
+    query_inputs.to(device)
+    query_outputs = model(**query_inputs)
+    query_embeddings = query_outputs.last_hidden_state[:, 0]
+    query_embeddings = torch.nn.functional.normalize(
+        query_embeddings,
+        p=2,
+        dim=1,
+    )
+
     for i in range(0, len(alltitles) - 1, 5000):
         print("Doing for batch: ", i)
         keys = [
@@ -50,23 +61,17 @@ def genEmbeddingsBatch():
             truncation=True,
             return_tensors="pt",
         )
+        key_inputs.to(device)
         with torch.no_grad():
-            query_outputs = model(**query_inputs)
             key_outputs = model(**key_inputs)
-            query_embeddings = query_outputs.last_hidden_state[:, 0]
             key_embeddings = key_outputs.last_hidden_state[:, 0]
-            query_embeddings = torch.nn.functional.normalize(
-                query_embeddings,
-                p=2,
-                dim=1,
-            )
             key_embeddings = torch.nn.functional.normalize(
                 key_embeddings,
                 p=2,
                 dim=1,
             )
         similarity = query_embeddings @ key_embeddings.T
-
+        similarity.cpu().detach().numpy()
         with open("data_ne/keywords/key_" + str(i) + "_.pkl", "wb") as f:
             pickle.dump(similarity, f)
 
