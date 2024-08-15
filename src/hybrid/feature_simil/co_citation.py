@@ -8,7 +8,7 @@ def getSEEDIds():
     """get seed IDS in a list"""
     listDocs = list()
     with open(
-        "/beegfs/schubotz/ankit/data/recommendationPairs.csv",
+        "data/recommendationPairs.csv",
         mode="r",
     ) as csvfile:
         csvFile = csv.reader(csvfile)
@@ -21,7 +21,7 @@ def getSEEDIds():
 def getDocID_to_zbl():
     dictRef = dict()
     with open(
-        "/beegfs/schubotz/ankit/data/zbMATH_id_to_ZBL.csv",
+        "data/zbMATH_id_to_ZBL.csv",
         mode="r",
     ) as csvfile:
         csvFile = csv.reader(csvfile)

@@ -10,7 +10,7 @@ def getidealRecommendations():
     """
     listDocs = dict()
     with open(
-        "/beegfs/schubotz/ankit/data/recommendationPairs.csv",
+        "data/recommendationPairs.csv",
         mode="r",
     ) as csvfile:
         csvFile = csv.reader(csvfile)
@@ -77,10 +77,10 @@ def extractScores(scoresLocation):
 
 def completeScores():
     a0scores = extractScores(
-        "/beegfs/schubotz/ankit/data/mabowdor/recsys/pya0",
+        "data/mabowdor/recsys/pya0",
     )
     dprscores = cleanDPRscores(
-        extractScores("/beegfs/schubotz/ankit/data/mabowdor/recsys/dpr"),
+        extractScores("data/mabowdor/recsys/dpr"),
     )
     aos = dict()
     for eachD in dprscores.keys():
@@ -146,4 +146,4 @@ def combinedScores():
 
 
 combinedScores()
-# checkFirstEntry("/beegfs/schubotz/ankit/data/mabowdor/recsys/dpr")
+# checkFirstEntry("mabowdor/recsys/dpr")
