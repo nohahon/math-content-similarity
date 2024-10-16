@@ -44,6 +44,7 @@ def recall_at_k(ideal_recommendations, generated_recommendations):
     """R@k measures how many of the relevant items are found in the top k recommendations."""
     recall_total = 0
     for ideal, generated in zip(ideal_recommendations, generated_recommendations):
+        # remove the following line and add k (constant) to function header 
         k = len(ideal)
         relevant = len([rec for rec in generated[:k] if rec in ideal])
         recall_total += relevant / len(ideal)
