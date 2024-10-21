@@ -40,12 +40,10 @@ def precision_at_k(ideal_recommendations, generated_recommendations, k):
         precision_total += relevant / k
     return precision_total / len(ideal_recommendations)
 
-def recall_at_k(ideal_recommendations, generated_recommendations):
+def recall_at_k(ideal_recommendations, generated_recommendations, k=10):
     """R@k measures how many of the relevant items are found in the top k recommendations."""
     recall_total = 0
     for ideal, generated in zip(ideal_recommendations, generated_recommendations):
-        # remove the following line and add k (constant) to function header 
-        k = len(ideal)
         relevant = len([rec for rec in generated[:k] if rec in ideal])
         recall_total += relevant / len(ideal)
     return recall_total / len(ideal_recommendations)
