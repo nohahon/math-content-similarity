@@ -17,14 +17,13 @@ os.makedirs(checkpoint_dir, exist_ok=True)
 
 # Load Model and Tokenizer with `trust_remote_code=True`
 vector_dim = 1024
-model_dir_loc = "/beegfs/schubotz/.cache/huggingface/hub/models--dunzhang--stella_en_400M_v5/snapshots/24e2e1ffe95e95d807989938a5f3b8c18ee651f5"
 vector_linear_directory = f"2_Dense_{vector_dim}"
 tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
 model = AutoModel.from_pretrained(model_name, trust_remote_code=True)
 vector_linear = torch.nn.Linear(in_features=model.config.hidden_size, out_features=vector_dim)
 vector_linear_dict = {
     k.replace("linear.", ""): v for k, v in
-    torch.load(os.path.join(model_dir, f"{vector_linear_directory}/pytorch_model.bin")).items()
+    torch.load(os.path.join("/beegfs/schubotz/.cache/huggingface/hub/models--dunzhang--stella_en_400M_v5/snapshots/24e2e1ffe95e95d807989938a5f3b8c18ee651f5", f"{vector_linear_directory}/pytorch_model.bin")).items()
 }
 vector_linear.load_state_dict(vector_linear_dict)
 vector_linear.cuda()
@@ -36,11 +35,13 @@ class ContrastiveLoss(nn.Module):
         self.margin = margin
 
     def forward(self, embedding1, embedding2, label):
-        # Calculate pairwise distance
-        euclidean_distance = torch.norm(embedding1 - embedding2, dim=-1)
-        # Contrastive loss
-        loss = torch.mean((1 - label) * torch.pow(euclidean_distance, 2) +
-                          label * torch.pow(torch.clamp(self.margin - euclidean_distance, min=0.0), 2))
+        embedding1_norm = nn.functional.normalize(embedding1, p=2, dim=-1)
+        embedding2_norm = nn.functional.normalize(embedding2, p=2, dim=-1)
+        # Calculate cosine similarity between the two embeddings
+        cosine_similarity = torch.sum(embedding1_norm * embedding2_norm, dim=-1)
+        # Contrastive loss based on cosine similarity
+        loss = torch.mean((1 - label) * torch.pow(torch.clamp(cosine_similarity, min=-1.0), 2) +
+                          label * torch.pow(torch.clamp(1 - cosine_similarity, min=0.0), 2))
         return loss
 
 # Load Dataset
@@ -63,7 +64,6 @@ def collate_fn(batch):
     return {"input_ids": input_ids, "attention_mask": attention_mask, "labels": labels}
 
 train_dataloader = DataLoader(processed_dataset["train"], batch_size=32, shuffle=True, collate_fn=collate_fn)
-
 # Optimizer
 optimizer = AdamW(model.parameters(), lr=5e-5)
 
@@ -87,15 +87,15 @@ for epoch in range(10):  # Number of epochs
         last_hidden_state = model(**input_ids)[0]
         last_hidden = last_hidden_state.masked_fill(~attention_mask[..., None].bool(), 0.0)
         embeddings = last_hidden.sum(dim=1) / attention_mask.sum(dim=1)[..., None]
-        embeddings = normalize(vector_linear(embeddings))
+        embeddings = nn.functional.normalize(vector_linear(embeddings), p=2, dim=-1)
         #embeddings = model(input_ids=input_ids, attention_mask=attention_mask).last_hidden_state[:, 0]
         # Split embeddings into pairs
         embeddings1 = embeddings[::2]
         embeddings2 = embeddings[1::2]
         labels = labels[::2]
         #compute accurracy
-        distances = torch.norm(embeddings1 - embeddings2, dim=-1)
-        predictions = (distances < contrastive_loss.margin).long()
+        cosine_similarity = torch.sum(embeddings1 * embeddings2, dim=-1)
+        predictions = (cosine_similarity > 0).long()
         correct_predictions += (predictions == labels).sum().item()
         total_predictions += labels.size(0)
         # Compute contrastive loss
