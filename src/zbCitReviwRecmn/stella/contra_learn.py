@@ -64,6 +64,7 @@ def collate_fn(batch):
     return {"input_ids": input_ids, "attention_mask": attention_mask, "labels": labels}
 
 train_dataloader = DataLoader(processed_dataset["train"], batch_size=32, shuffle=True, collate_fn=collate_fn)
+
 # Optimizer
 optimizer = AdamW(model.parameters(), lr=5e-5)
 
@@ -103,7 +104,15 @@ for epoch in range(10):  # Number of epochs
         loss.backward()
         optimizer.step()
         epoch_loss += loss.item()
-        #save checkpoint
+        if batch_idx < 5:
+            checkpoint_path = os.path.join(checkpoint_dir, f"checkpoint_epoch{batch_idx + 1}.pt")
+            torch.save({
+                'epoch': batch_idx,
+                'model_state_dict': model.state_dict(),
+                'optimizer_state_dict': optimizer.state_dict(),
+            }, checkpoint_path)
+            print(f"Checkpoint saved at {checkpoint_path}")
+    #save checkpoint
     checkpoint_path = os.path.join(checkpoint_dir, f"checkpoint_epoch{epoch + 1}_batch{batch_idx + 1}.pt")
     torch.save({
         'epoch': epoch + 1,
