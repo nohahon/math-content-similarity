@@ -17,6 +17,7 @@ os.makedirs(checkpoint_dir, exist_ok=True)
 
 # Load Model and Tokenizer with `trust_remote_code=True`
 vector_dim = 1024
+model_dir_loc = "/beegfs/schubotz/.cache/huggingface/hub/models--dunzhang--stella_en_400M_v5/snapshots/24e2e1ffe95e95d807989938a5f3b8c18ee651f5"
 vector_linear_directory = f"2_Dense_{vector_dim}"
 tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
 model = AutoModel.from_pretrained(model_name, trust_remote_code=True)
