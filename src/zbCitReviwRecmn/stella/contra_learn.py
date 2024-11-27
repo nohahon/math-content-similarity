@@ -1,3 +1,4 @@
+import os
 import torch
 from torch import nn
 from torch.utils.data import DataLoader
@@ -11,10 +12,21 @@ dataset_name = "AnkitSatpute/zbMath_contra_rand"
 output_dir = "./trained_model_params"
 push_to_hub = True
 new_model_name = "contrastive-stella-embeddings"
+checkpoint_dir = "./checkpoints"
+os.makedirs(checkpoint_dir, exist_ok=True)
 
 # Load Model and Tokenizer with `trust_remote_code=True`
+vector_dim = 1024
+vector_linear_directory = f"2_Dense_{vector_dim}"
 tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
 model = AutoModel.from_pretrained(model_name, trust_remote_code=True)
+vector_linear = torch.nn.Linear(in_features=model.config.hidden_size, out_features=vector_dim)
+vector_linear_dict = {
+    k.replace("linear.", ""): v for k, v in
+    torch.load(os.path.join(model_dir, f"{vector_linear_directory}/pytorch_model.bin")).items()
+}
+vector_linear.load_state_dict(vector_linear_dict)
+vector_linear.cuda()
 
 # Contrastive Loss
 class ContrastiveLoss(nn.Module):
@@ -32,10 +44,11 @@ class ContrastiveLoss(nn.Module):
 
 # Load Dataset
 dataset = load_dataset(dataset_name)
+
 # Preprocessing Function
 def preprocess_function(examples):
     # Tokenize text
-    inputs = tokenizer(examples["text"])
+    inputs = tokenizer(examples["text"], padding="longest", truncation=True, max_length=512, return_tensors="pt")
     return {"input_ids": inputs["input_ids"], "attention_mask": inputs["attention_mask"], "label": examples["label"]}
 
 # Preprocess Dataset
@@ -61,25 +74,44 @@ contrastive_loss = ContrastiveLoss()
 for epoch in range(10):  # Number of epochs
     model.train()
     epoch_loss = 0.0
-    for batch in train_dataloader:
+    correct_predictions = 0
+    total_predictions = 0
+    for batch_idx,batch in enumerate(train_dataloader):
         optimizer.zero_grad()
         # Move data to device
         input_ids = batch["input_ids"].to(device)
         attention_mask = batch["attention_mask"].to(device)
         labels = batch["labels"].to(device)
         # Generate embeddings
-        embeddings = model(input_ids=input_ids, attention_mask=attention_mask).last_hidden_state[:, 0]
+        last_hidden_state = model(**input_ids)[0]
+        last_hidden = last_hidden_state.masked_fill(~attention_mask[..., None].bool(), 0.0)
+        embeddings = last_hidden.sum(dim=1) / attention_mask.sum(dim=1)[..., None]
+        embeddings = normalize(vector_linear(embeddings))
+        #embeddings = model(input_ids=input_ids, attention_mask=attention_mask).last_hidden_state[:, 0]
         # Split embeddings into pairs
         embeddings1 = embeddings[::2]
         embeddings2 = embeddings[1::2]
         labels = labels[::2]
+        #compute accurracy
+        distances = torch.norm(embeddings1 - embeddings2, dim=-1)
+        predictions = (distances < contrastive_loss.margin).long()
+        correct_predictions += (predictions == labels).sum().item()
+        total_predictions += labels.size(0)
         # Compute contrastive loss
         loss = contrastive_loss(embeddings1, embeddings2, labels)
         loss.backward()
         optimizer.step()
         epoch_loss += loss.item()
-
-    print(f"Epoch {epoch + 1}: Loss = {epoch_loss / len(train_dataloader)}")
+        #save checkpoint
+    checkpoint_path = os.path.join(checkpoint_dir, f"checkpoint_epoch{epoch + 1}_batch{batch_idx + 1}.pt")
+    torch.save({
+        'epoch': epoch + 1,
+        'model_state_dict': model.state_dict(),
+        'optimizer_state_dict': optimizer.state_dict(),
+    }, checkpoint_path)
+    print(f"Checkpoint saved at {checkpoint_path}")
+    accuracy = correct_predictions / total_predictions
+    print(f"Epoch {epoch + 1}: Loss = {epoch_loss / len(train_dataloader)}, Accuracy = {accuracy * 100:.2f}%")
 
 # Save and Push Model to Hugging Face Hub
 if push_to_hub:
