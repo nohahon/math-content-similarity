@@ -15,17 +15,16 @@ INSTRUCTIONS = {
     },
 }
 
-def createIndex(main_data_):
+def createIndex(main_data_, model_):
     """ Creating FAISS vector DB """
     instruction = INSTRUCTIONS["qa"]
-    model = SentenceTransformer("dunzhang/stella_en_400M_v5", device='cuda', trust_remote_code=True)
-    embedding_dim = model.get_sentence_embedding_dimension()
+    embedding_dim = model_.get_sentence_embedding_dimension()
     index = faiss.IndexFlatIP(embedding_dim)
     batch_size = 5000
     for start_idx in range(0, len(main_data_), batch_size):
         end_idx = min(start_idx + batch_size, len(main_data_))
         titles_batch = main_data_['title'].iloc[start_idx:end_idx].tolist()
-        embeddings_batch = model.encode(titles_batch, convert_to_numpy=True, device='cuda')
+        embeddings_batch = model_.encode(titles_batch, convert_to_numpy=True, device='cuda')
         faiss.normalize_L2(embeddings_batch)
         index.add(embeddings_batch.astype('float32'))
     faiss.write_index(index, "data/base_/title/tit_stella_basemebd.index")
@@ -40,7 +39,7 @@ def main_faiss():
     missing_document_ids = test_[~test_['document_id'].isin(main_data['document_id'])]['document_id']
     missing_data = pd.DataFrame({'document_id': missing_document_ids, 'title': 'No title'})
     main_data = pd.concat([main_data, missing_data], ignore_index=True)
-    #createIndex(main_data)  #only need to run once for creating index 
+    #createIndex(main_data, model)  #only need to run once for creating index 
     #sys.exit(0)
     # Loop through each document_id in the test_ dataframe
     index = faiss.read_index("data/base_/title/tit_stella_basemebd.index")
