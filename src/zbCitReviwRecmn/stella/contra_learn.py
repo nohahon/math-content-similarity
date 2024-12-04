@@ -15,10 +15,10 @@ from huggingface_hub import Repository
 
 # Configurations
 model_name = "dunzhang/stella_en_400M_v5"
-output_dir = "./trained_model_params"
+output_dir = "./trained_model_ß24"
 push_to_hub = True
 new_model_name = "contrastive-stella-embeddings"
-checkpoint_dir = "./chckpnts_stle_rand"
+checkpoint_dir = "./chckpnts_stle_rand_ß24"
 os.makedirs(checkpoint_dir, exist_ok=True)
 
 # Load Model and Tokenizer with `trust_remote_code=True`
@@ -33,6 +33,7 @@ vector_linear_dict = {
 }
 vector_linear.load_state_dict(vector_linear_dict)
 vector_linear.cuda()
+
 
 # Contrastive Loss
 class ContrastiveLoss(nn.Module):
@@ -75,7 +76,7 @@ doc_text_dict = dict(zip(main_df['document_id'].astype(str), main_df['text']))
 # Preprocessing Function
 def preprocess_function(examples, labels):
     # Tokenize text
-    inputs = tokenizer(examples, padding="longest", truncation=True, max_length=512, return_tensors="pt")
+    inputs = tokenizer(examples, padding="max_length", truncation=True, max_length=1024, return_tensors="pt")
     return {"input_ids": inputs["input_ids"], "attention_mask": inputs["attention_mask"], "label": labels}
 
 # Preprocess Dataset
@@ -97,7 +98,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model.to(device)
 contrastive_loss = ContrastiveLoss()
 
-for epoch in range(5):  # Number of epochs
+for epoch in range(1):  # Number of epochs
     model.train()
     epoch_loss = 0.0
     correct_predictions = 0
@@ -117,6 +118,7 @@ for epoch in range(5):  # Number of epochs
                 doc2_str = doc_text_dict.get(str(eachComb[1]), "")
                 label = [1 if eachComb in pos_combs else 0]
                 records.append(preprocess_function(doc1_str + doc2_str, label))
+            #print(records)
             batch = collate_fn(records)
             optimizer.zero_grad()
             # Move data to device
@@ -139,21 +141,21 @@ for epoch in range(5):  # Number of epochs
             correct_predictions += (predictions == labels).sum().item()
             total_predictions += labels.size(0)
             # Compute contrastive loss
-
             loss = contrastive_loss(embeddings1, embeddings2, labels)
             loss.backward()
             optimizer.step()
             epoch_loss += loss.item()
-            #if batch_idx < 5:
-            #    checkpoint_path = os.path.join(checkpoint_dir, f"checkpoint_epoch{batch_idx + 1}.pt")
-            #    torch.save({
-            #        'epoch': batch_idx,
-            #        'model_state_dict': model.state_dict(),
-            #        'optimizer_state_dict': optimizer.state_dict(),
-            #    }, checkpoint_path)
-            #    print(f"Checkpoint saved at {checkpoint_path}")
+            if index == 25000:
+                checkpoint_path = os.path.join(checkpoint_dir, f"checkpoint_inter.pt")
+                torch.save({
+                    'epoch': 1,
+                    'model_state_dict': model.state_dict(),
+                    'optimizer_state_dict': optimizer.state_dict(),
+                }, checkpoint_path)
+                print(f"Checkpoint saved at {checkpoint_path}")
     #save checkpoint
-    checkpoint_path = os.path.join(checkpoint_dir, f"checkpoint_epoch{epoch + 1}_.pt")
+    checkpoint_path = os.path.join(checkpoint_dir, f"checkpoint_special.pt")
+
     torch.save({
         'epoch': epoch + 1,
         'model_state_dict': model.state_dict(),
