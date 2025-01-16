@@ -1,6 +1,6 @@
 ## About
 
-This repository contains the resources used for RecSys'2024 submission "Towards Better STEM Recommendations: A Gold-Standard Dataset with Math content"
+This repository contains the resources used for SIGIR'2025 submission "zbMATHRecSys: Recommender System for Math Research Papers from zbMATH Open"
 
 
 ### Install Dependencies
