@@ -1,6 +1,6 @@
 ## Evaluation results
 
-### Baselin models (Table 2)
+### Baseline models (Table 2)
 
 - Base models
 
